@@ -1,0 +1,407 @@
+{
+  "game": "wingspan",
+  "version": "base_set",
+  "description": "Golden Q&A dataset for Rule Oracle evaluation. 50 manually annotated pairs covering all rule categories.",
+  "qa_pairs": [
+    {
+      "id": "bt_01",
+      "category": "basic_turn",
+      "question": "What are the four actions a player can take on their turn in Wingspan?",
+      "expected_answer": "On your turn you must take exactly one of four actions: (1) Gain food from the bird feeder, (2) Lay eggs on birds in your grassland, (3) Draw bird cards from the tray or deck, or (4) Play a bird from your hand into a habitat.",
+      "source_page": 6,
+      "keywords": ["gain food", "lay eggs", "draw bird cards", "play a bird", "four actions"]
+    },
+    {
+      "id": "bt_02",
+      "category": "basic_turn",
+      "question": "How many turns does each player get in round 1?",
+      "expected_answer": "In round 1 each player gets 8 turns (action cubes). Each round after that has fewer turns: round 2 has 7, round 3 has 6, and round 4 has 5.",
+      "source_page": 5,
+      "keywords": ["8 turns", "action cubes", "round 1"]
+    },
+    {
+      "id": "bt_03",
+      "category": "basic_turn",
+      "question": "What resources does each player start with at the beginning of the game?",
+      "expected_answer": "Each player starts with 5 food tokens (drawn randomly from the supply), 1 egg, and 5 bird cards in hand (from which they keep up to 5, discarding down depending on how many food they keep at game start).",
+      "source_page": 4,
+      "keywords": ["starting resources", "5 food", "1 egg", "5 bird cards", "setup"]
+    },
+    {
+      "id": "bt_04",
+      "category": "basic_turn",
+      "question": "How many eggs must a player discard to play a bird into the first slot of a habitat?",
+      "expected_answer": "No eggs are required (0 eggs) to play a bird into the first slot of any habitat. The egg cost increases as you fill more slots: 0 eggs for slot 1, 1 egg for slots 2 and 3, 2 eggs for slots 4 and 5.",
+      "source_page": 7,
+      "keywords": ["egg cost", "first slot", "play a bird", "0 eggs"]
+    },
+    {
+      "id": "bt_05",
+      "category": "basic_turn",
+      "question": "When you choose the Gain Food action, how much food do you gain?",
+      "expected_answer": "When you choose Gain Food, you gain 1 food from the bird feeder, plus 1 additional food for each bird already in your forest habitat (with the 'Gain Food' action symbol). The food you take must match one of the dice showing in the feeder.",
+      "source_page": 8,
+      "keywords": ["gain food", "bird feeder", "forest", "food tokens"]
+    },
+    {
+      "id": "bt_06",
+      "category": "basic_turn",
+      "question": "When you choose the Lay Eggs action, how many eggs do you lay?",
+      "expected_answer": "When you choose Lay Eggs, you lay 2 eggs on birds in your grassland, plus 1 additional egg for each bird already in your grassland habitat. You distribute the eggs among birds that still have room under their egg limit.",
+      "source_page": 8,
+      "keywords": ["lay eggs", "grassland", "2 eggs", "egg limit"]
+    },
+    {
+      "id": "bt_07",
+      "category": "basic_turn",
+      "question": "When you choose the Draw Bird Cards action, how many cards can you draw?",
+      "expected_answer": "When you choose Draw Bird Cards, you draw 1 card plus 1 additional card for each bird already in your wetland. You may draw from the 3 face-up cards in the bird tray, or blind from the top of the deck.",
+      "source_page": 8,
+      "keywords": ["draw bird cards", "wetland", "bird tray", "face-up", "deck"]
+    },
+    {
+      "id": "bt_08",
+      "category": "basic_turn",
+      "question": "Can you play a bird into any habitat or only ones that match the bird's habitat icons?",
+      "expected_answer": "You can only play a bird into a habitat that matches at least one of the bird's habitat icons (forest, grassland, or wetland). A bird with multiple habitat icons can be played into any of its valid habitats.",
+      "source_page": 7,
+      "keywords": ["habitat", "play a bird", "habitat icons", "forest grassland wetland"]
+    },
+    {
+      "id": "bt_09",
+      "category": "basic_turn",
+      "question": "What is the maximum number of birds a player can have on their personal board?",
+      "expected_answer": "Each player's personal board has 3 habitats with 5 slots each, for a maximum of 15 birds total.",
+      "source_page": 4,
+      "keywords": ["15 birds", "5 slots", "3 habitats", "personal board"]
+    },
+    {
+      "id": "bt_10",
+      "category": "basic_turn",
+      "question": "How many players does the base Wingspan game support?",
+      "expected_answer": "The base Wingspan game supports 1 to 5 players.",
+      "source_page": 1,
+      "keywords": ["1 to 5 players", "player count"]
+    },
+    {
+      "id": "bp_01",
+      "category": "bird_power",
+      "question": "When does a 'when played' bird power activate?",
+      "expected_answer": "A 'when played' (brown) power activates immediately and only once: when you play that bird card from your hand onto your board.",
+      "source_page": 10,
+      "keywords": ["when played", "brown power", "once", "activates"]
+    },
+    {
+      "id": "bp_02",
+      "category": "bird_power",
+      "question": "When does a pink 'once between turns' power activate?",
+      "expected_answer": "A pink power activates once between turns — specifically, when another player activates the habitat where this bird lives. It may activate multiple times per round, once per other player's turn who activates that habitat.",
+      "source_page": 10,
+      "keywords": ["pink power", "once between turns", "other player", "habitat action"]
+    },
+    {
+      "id": "bp_03",
+      "category": "bird_power",
+      "question": "What does a white flocking power do?",
+      "expected_answer": "A white flocking power activates for all players simultaneously (in turn order) when the habitat where the bird lives is activated. It is not optional — all players must perform the action if they can.",
+      "source_page": 10,
+      "keywords": ["white power", "flocking", "all players", "simultaneously"]
+    },
+    {
+      "id": "bp_04",
+      "category": "bird_power",
+      "question": "When does a teal end-of-round power activate?",
+      "expected_answer": "A teal power activates at the end of each round, after all players have taken their turns but before the end-of-round goal is scored.",
+      "source_page": 10,
+      "keywords": ["teal power", "end of round", "scoring"]
+    },
+    {
+      "id": "bp_05",
+      "category": "bird_power",
+      "question": "Can a player choose not to use their bird's power?",
+      "expected_answer": "Powers labeled 'may' are optional — you can choose not to use them. Powers without 'may' are mandatory when triggered.",
+      "source_page": 10,
+      "keywords": ["may", "optional", "mandatory", "bird power"]
+    },
+    {
+      "id": "bp_06",
+      "category": "bird_power",
+      "question": "What is a predator bird power and how does it work?",
+      "expected_answer": "A predator power lets you hunt: you draw the top card of the bird deck and check if its wingspan is at or below the predator's listed value. If so, the prey is tucked under the predator (as a point). If not, the prey card is discarded.",
+      "source_page": 11,
+      "keywords": ["predator", "hunt", "wingspan", "tuck", "discard", "prey"]
+    },
+    {
+      "id": "bp_07",
+      "category": "bird_power",
+      "question": "What does 'tuck a card' mean in Wingspan?",
+      "expected_answer": "Tucking a card means placing it face-down under a specific bird on your board. Tucked cards are worth 1 point each at end of game and may also satisfy certain scoring conditions.",
+      "source_page": 11,
+      "keywords": ["tuck", "face-down", "1 point", "under bird"]
+    },
+    {
+      "id": "bp_08",
+      "category": "bird_power",
+      "question": "What does 'cache food' mean in Wingspan?",
+      "expected_answer": "Caching food means placing a food token from the general supply directly onto a bird card on your board (not in your personal supply). Cached food is worth 1 point each at end of game.",
+      "source_page": 11,
+      "keywords": ["cache food", "food token", "1 point", "on bird"]
+    },
+    {
+      "id": "bp_09",
+      "category": "bird_power",
+      "question": "When you activate the forest habitat action, which birds activate their powers?",
+      "expected_answer": "When you activate the forest habitat action, all brown birds in your forest activate their powers from right to left (starting from the rightmost occupied slot toward the action space).",
+      "source_page": 8,
+      "keywords": ["forest", "right to left", "brown power", "activate"]
+    },
+    {
+      "id": "bp_10",
+      "category": "bird_power",
+      "question": "In what order do birds activate their powers in a habitat?",
+      "expected_answer": "Birds activate from right to left within the habitat — the rightmost bird activates first, ending with the bird in the leftmost occupied slot closest to the action space.",
+      "source_page": 8,
+      "keywords": ["right to left", "activation order", "habitat"]
+    },
+    {
+      "id": "bp_11",
+      "category": "bird_power",
+      "question": "What is a 'repeat' power on a bird card?",
+      "expected_answer": "A 'repeat' power lets you activate the habitat action of another habitat (forest, grassland, or wetland) as if you had chosen that action. You get the base benefit of that habitat action but do not activate birds in it again.",
+      "source_page": 12,
+      "keywords": ["repeat", "habitat action", "base benefit"]
+    },
+    {
+      "id": "bp_12",
+      "category": "bird_power",
+      "question": "What is the egg limit for a bird with a platform nest?",
+      "expected_answer": "The egg limit for each bird is printed on its card; nest type affects end-of-round goals and bonus cards but does not itself set the limit. Platform nest birds typically have an egg limit of 1.",
+      "source_page": 7,
+      "keywords": ["egg limit", "platform nest", "printed on card"]
+    },
+    {
+      "id": "bp_13",
+      "category": "bird_power",
+      "question": "What does the 'wild' food icon mean when paying to play a bird?",
+      "expected_answer": "A wild food icon means you can pay with any single food token of any type to satisfy that cost.",
+      "source_page": 7,
+      "keywords": ["wild food", "any type", "food cost"]
+    },
+    {
+      "id": "bp_14",
+      "category": "bird_power",
+      "question": "What is a 'flocking' bird power?",
+      "expected_answer": "A flocking power is a white power that lets all players (starting with the player who activated the habitat, then in turn order) tuck 1 card from their hand and gain 1 egg, or lay 1 egg, depending on the specific bird.",
+      "source_page": 10,
+      "keywords": ["flocking", "white power", "all players", "tuck", "egg"]
+    },
+    {
+      "id": "bp_15",
+      "category": "bird_power",
+      "question": "If a bird has no power text, does anything happen when you activate its habitat?",
+      "expected_answer": "No. If a bird has no power (shown by an empty power box or no symbol), nothing additional happens when its habitat is activated. You only gain the base habitat action benefit.",
+      "source_page": 10,
+      "keywords": ["no power", "empty power", "base action"]
+    },
+    {
+      "id": "eor_01",
+      "category": "end_of_round",
+      "question": "When is the end-of-round goal scored?",
+      "expected_answer": "The end-of-round goal is scored after all players have taken all their turns for that round. Players secretly look at the goal tile and place a scoring cube on it to record their position.",
+      "source_page": 13,
+      "keywords": ["end of round", "goal tile", "scoring cube", "after all turns"]
+    },
+    {
+      "id": "eor_02",
+      "category": "end_of_round",
+      "question": "How many end-of-round goals are there in a game?",
+      "expected_answer": "There are 4 end-of-round goals, one scored at the end of each of the 4 rounds.",
+      "source_page": 13,
+      "keywords": ["4 goals", "4 rounds", "one per round"]
+    },
+    {
+      "id": "eor_03",
+      "category": "end_of_round",
+      "question": "How are end-of-round goal points distributed when players tie?",
+      "expected_answer": "When players tie on a goal, they both receive the points for the next available position (e.g., if two players tie for first, they both score 5 points and no one scores for second place).",
+      "source_page": 13,
+      "keywords": ["tie", "same points", "shared", "end of round goal"]
+    },
+    {
+      "id": "eor_04",
+      "category": "end_of_round",
+      "question": "What are some examples of end-of-round goals?",
+      "expected_answer": "End-of-round goals include things like: most birds in a specific habitat, most eggs in a specific habitat, most birds with a specific nest type, most sets of eggs in different nest types, etc.",
+      "source_page": 13,
+      "keywords": ["most birds", "most eggs", "habitat", "nest type", "goal examples"]
+    },
+    {
+      "id": "eor_05",
+      "category": "end_of_round",
+      "question": "How is the final score calculated at the end of the game?",
+      "expected_answer": "Final score = (bird card points) + (bonus card points) + (end-of-round goal points) + (eggs on birds, 1 point each) + (food cached on birds, 1 point each) + (cards tucked under birds, 1 point each).",
+      "source_page": 17,
+      "keywords": ["final score", "bird points", "eggs", "food cached", "tucked cards", "bonus card"]
+    },
+    {
+      "id": "eor_06",
+      "category": "end_of_round",
+      "question": "What are bonus cards and when are they scored?",
+      "expected_answer": "Bonus cards are scored at end of game. Each bonus card specifies a collection criterion (e.g., most birds in wetland, birds with certain wingspan ranges) and awards points based on how well you meet it.",
+      "source_page": 16,
+      "keywords": ["bonus card", "end of game", "collection criterion", "points"]
+    },
+    {
+      "id": "eor_07",
+      "category": "end_of_round",
+      "question": "What happens to the bird tray at the end of each round?",
+      "expected_answer": "At the end of each round, all remaining face-up cards in the bird tray are discarded and replaced with 3 new face-up cards from the deck.",
+      "source_page": 14,
+      "keywords": ["bird tray", "discard", "replaced", "end of round", "3 new cards"]
+    },
+    {
+      "id": "eor_08",
+      "category": "end_of_round",
+      "question": "How are end-of-round goal cubes scored at the end of the game?",
+      "expected_answer": "At end of game, each player scores the points shown on the row of the goal card where their cube was placed. Higher rows have more points. Only one cube per player per goal.",
+      "source_page": 13,
+      "keywords": ["scoring cubes", "goal card rows", "points per position"]
+    },
+    {
+      "id": "eor_09",
+      "category": "end_of_round",
+      "question": "Is the turn order reset at the start of each round?",
+      "expected_answer": "No. The turn order does not change during a game of Wingspan. Players always take turns in the same order throughout all 4 rounds.",
+      "source_page": 5,
+      "keywords": ["turn order", "same order", "all rounds", "does not change"]
+    },
+    {
+      "id": "eor_10",
+      "category": "end_of_round",
+      "question": "What happens to unused action cubes at the end of a round?",
+      "expected_answer": "Unused action cubes are returned to the action cube supply. They do not carry over to the next round.",
+      "source_page": 14,
+      "keywords": ["action cubes", "returned", "do not carry over"]
+    },
+    {
+      "id": "ec_01",
+      "category": "edge_case",
+      "question": "What happens if all dice in the bird feeder show the same food type?",
+      "expected_answer": "If all dice in the bird feeder show the same food type (a birdfeeder 'reset'), all 5 dice must be rerolled before any player gains food. This applies whether you are gaining food or a bird power causes someone to gain food from the feeder.",
+      "source_page": 9,
+      "keywords": ["all same", "reroll", "bird feeder reset", "same food type"]
+    },
+    {
+      "id": "ec_02",
+      "category": "edge_case",
+      "question": "What happens when the bird card draw deck runs out?",
+      "expected_answer": "If the draw deck is empty when a player needs to draw a card, they may only draw from the face-up cards in the bird tray. The deck is not reshuffled from discards.",
+      "source_page": 9,
+      "keywords": ["deck empty", "face-up only", "not reshuffled"]
+    },
+    {
+      "id": "ec_03",
+      "category": "edge_case",
+      "question": "Can a player lay eggs on a bird that is already at its egg limit?",
+      "expected_answer": "No. You cannot place eggs on a bird that has reached its egg limit. When laying eggs, you must distribute them only among birds that still have room.",
+      "source_page": 8,
+      "keywords": ["egg limit", "cannot exceed", "distribute", "room"]
+    },
+    {
+      "id": "ec_04",
+      "category": "edge_case",
+      "question": "What if a player cannot complete all eggs they are entitled to lay because all birds are full?",
+      "expected_answer": "If a player cannot lay all their entitled eggs because all birds are at their egg limit, those remaining eggs are simply lost — they do not carry over or go to a general supply.",
+      "source_page": 8,
+      "keywords": ["eggs lost", "all birds full", "remaining eggs", "forfeit"]
+    },
+    {
+      "id": "ec_05",
+      "category": "edge_case",
+      "question": "What happens to the bird tray if fewer than 3 cards are available to refill it?",
+      "expected_answer": "The tray is filled with however many cards remain in the deck. If the deck is empty, the tray may have fewer than 3 face-up cards for the rest of the game.",
+      "source_page": 9,
+      "keywords": ["fewer cards", "deck empty", "refill", "fewer than 3"]
+    },
+    {
+      "id": "ec_06",
+      "category": "edge_case",
+      "question": "Can a player have more food tokens than their personal supply tracker allows?",
+      "expected_answer": "Players do not have a strict food token limit — they keep food in a personal supply and can hold as many tokens as they have. The food supply is not capped by a personal storage limit.",
+      "source_page": 4,
+      "keywords": ["food supply", "no limit", "personal supply"]
+    },
+    {
+      "id": "ec_07",
+      "category": "edge_case",
+      "question": "What if the general supply of eggs runs out?",
+      "expected_answer": "If the egg supply runs out, players cannot lay more eggs until other players remove eggs from birds (which can happen when playing a bird requiring egg payment). The supply is treated as limited — players cannot lay eggs beyond what is available.",
+      "source_page": 9,
+      "keywords": ["egg supply", "runs out", "limited supply"]
+    },
+    {
+      "id": "ec_08",
+      "category": "edge_case",
+      "question": "When is the bird feeder refilled after food is taken?",
+      "expected_answer": "The bird feeder is not refilled mid-round. When a player takes food from the feeder, the dice showing that food type remain in the feeder face showing the taken food is not replaced immediately. The feeder only resets (rerolls all dice) when all dice show the same face.",
+      "source_page": 9,
+      "keywords": ["bird feeder", "not refilled", "dice remain", "reset condition"]
+    },
+    {
+      "id": "ec_09",
+      "category": "edge_case",
+      "question": "Can a player activate a bird power on a bird they just played this turn?",
+      "expected_answer": "Yes. If you play a bird and then that bird has a brown 'when played' power, it activates immediately. Additionally, if you then activate a habitat action where that bird now lives, its power activates as part of that action.",
+      "source_page": 10,
+      "keywords": ["just played", "when played", "immediately", "same turn"]
+    },
+    {
+      "id": "ec_10",
+      "category": "edge_case",
+      "question": "What happens if a player runs out of action cubes during a round?",
+      "expected_answer": "When a player has placed all their action cubes, their turn for that round is over. They sit out the remaining turns of the round while other players continue until all players have placed all their cubes.",
+      "source_page": 6,
+      "keywords": ["action cubes exhausted", "turn is over", "sit out", "other players continue"]
+    },
+    {
+      "id": "ex_01",
+      "category": "exception",
+      "question": "Do bird card powers override the general turn rules?",
+      "expected_answer": "Yes. Specific card text takes precedence over general rules when there is a conflict. If a card says you 'may' do something that would normally not be allowed, the card overrides the general rule.",
+      "source_page": 10,
+      "keywords": ["card text overrides", "general rules", "specific beats general"]
+    },
+    {
+      "id": "ex_02",
+      "category": "exception",
+      "question": "Can a bird be in multiple habitats simultaneously?",
+      "expected_answer": "No. A bird is placed in exactly one habitat slot and remains there for the rest of the game. Having multiple habitat icons on a card only means you have a choice of where to play it initially.",
+      "source_page": 7,
+      "keywords": ["one habitat", "multiple icons", "choice when played", "not both"]
+    },
+    {
+      "id": "ex_03",
+      "category": "exception",
+      "question": "Is there a hand size limit for bird cards?",
+      "expected_answer": "There is no hand size limit in Wingspan. Players may hold as many bird cards in hand as they wish.",
+      "source_page": 4,
+      "keywords": ["hand size", "no limit", "unlimited hand"]
+    },
+    {
+      "id": "ex_04",
+      "category": "exception",
+      "question": "Can food cached on a bird be spent to pay costs later in the game?",
+      "expected_answer": "No. Food cached on a bird (placed directly on the card) cannot be spent. It remains on the bird and counts as 1 point each at end of game. Only food in your personal supply can be spent.",
+      "source_page": 11,
+      "keywords": ["cached food", "cannot spend", "personal supply only", "1 point"]
+    },
+    {
+      "id": "ex_05",
+      "category": "exception",
+      "question": "What if two bonus cards scored simultaneously give conflicting instructions?",
+      "expected_answer": "Bonus cards do not give conflicting instructions — they each independently score points based on your board state at end of game. There is no conflict since they are scored additively.",
+      "source_page": 16,
+      "keywords": ["bonus cards", "independently", "additively scored", "no conflict"]
+    }
+  ]
+}

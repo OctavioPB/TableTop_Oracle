@@ -17,9 +17,9 @@ your decision.
 </action>
 
 Respond with valid JSON only, no markdown fences:
-{
+{{
   "is_legal": true | false,
   "reason": "one-sentence explanation",
   "rule_quote": "verbatim text from the rules that applies",
-  "confidence": 0.0–1.0
-}
+  "confidence": 0.0-1.0
+}}

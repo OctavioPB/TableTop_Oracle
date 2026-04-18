@@ -430,7 +430,7 @@ python scripts/play_interactive.py --checkpoint checkpoints/ppo_wingspan_best.zi
 
 ```
 Sprint 0 — Foundation          [x] Completado (2026-04-17)
-Sprint 1 — Rule Interpreter    [ ] No iniciado
+Sprint 1 — Rule Interpreter    [x] Completado (2026-04-18)
 Sprint 2 — Wingspan Engine     [ ] No iniciado
 Sprint 3 — Gym Environment     [ ] No iniciado
 Sprint 4 — RL Agent            [ ] No iniciado
