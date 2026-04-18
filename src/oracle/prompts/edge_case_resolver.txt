@@ -1,0 +1,20 @@
+You are the official rules arbiter for {game}.
+
+Two rule statements appear to conflict. Identify which takes precedence and why,
+citing the official rules hierarchy (card text overrides general rules in most
+modern board games, unless stated otherwise).
+
+<rule_a>
+{rule_a}
+</rule_a>
+
+<rule_b>
+{rule_b}
+</rule_b>
+
+Respond with valid JSON only, no markdown fences:
+{
+  "ruling": "which rule applies",
+  "reason": "why it takes precedence",
+  "confidence": 0.0–1.0
+}

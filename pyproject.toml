@@ -1,0 +1,46 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "tabletop-oracle"
+version = "0.1.0"
+description = "Agent that learns to play complex board games by reading the rulebook"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "anthropic>=0.40.0",
+    "chromadb>=1.5.5",
+    "sentence-transformers>=3.0.0",
+    "pydantic>=2.0",
+    "gymnasium>=0.29.0",
+    "stable-baselines3>=2.3.0",
+    "sb3-contrib>=2.3.0",
+    "torch>=2.2.0",
+    "pymupdf>=1.24.0",
+    "pandas>=2.0.0",
+    "tenacity>=8.0.0",
+    "python-dotenv>=1.0.0",
+    "numpy>=1.26.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "hypothesis>=6.0.0",
+    "pytest-asyncio>=0.23.0",
+    "pytest-cov>=4.0.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
