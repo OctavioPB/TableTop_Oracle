@@ -331,12 +331,9 @@ class TestRuleOracleValidateAction:
         self, oracle_validation: RuleOracle
     ) -> None:
         from src.games.base.game_state import Action
-        from src.games.wingspan.state import WingspanPlayerState, WingspanState
+        from src.games.wingspan.state import WingspanState
 
-        state = WingspanState(
-            player_id=0, turn=1, phase="main",
-            players=[WingspanPlayerState(player_id=0), WingspanPlayerState(player_id=1)],
-        )
+        state = WingspanState(player_id=0, turn=1, phase="main")
         action = Action(action_type="gain_food", params={"food": "seed"})
         result = oracle_validation.validate_action(state, action, "wingspan")
         assert isinstance(result, ValidationResult)
@@ -345,12 +342,9 @@ class TestRuleOracleValidateAction:
         self, oracle_validation: RuleOracle
     ) -> None:
         from src.games.base.game_state import Action
-        from src.games.wingspan.state import WingspanPlayerState, WingspanState
+        from src.games.wingspan.state import WingspanState
 
-        state = WingspanState(
-            player_id=0, turn=1, phase="main",
-            players=[WingspanPlayerState(player_id=0)],
-        )
+        state = WingspanState(player_id=0, turn=1, phase="main")
         action = Action(action_type="gain_food")
         result = oracle_validation.validate_action(state, action, "wingspan")
         assert isinstance(result.is_legal, bool)
@@ -359,12 +353,9 @@ class TestRuleOracleValidateAction:
         self, oracle_validation: RuleOracle
     ) -> None:
         from src.games.base.game_state import Action
-        from src.games.wingspan.state import WingspanPlayerState, WingspanState
+        from src.games.wingspan.state import WingspanState
 
-        state = WingspanState(
-            player_id=0, turn=1, phase="main",
-            players=[WingspanPlayerState(player_id=0)],
-        )
+        state = WingspanState(player_id=0, turn=1, phase="main")
         action = Action(action_type="lay_eggs")
         result = oracle_validation.validate_action(state, action, "wingspan")
         assert 0.0 <= result.confidence <= 1.0

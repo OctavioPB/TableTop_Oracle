@@ -1,0 +1,215 @@
+name,habitat,food_cost,nest_type,egg_limit,points,wingspan_cm,power_timing,power_id,power_type,power_param,power_text
+Acorn Woodpecker,forest,invertebrate:1,cavity,4,5,36,when_activated,cache_food,accumulate,0,Cache 1 food on this bird
+American Avocet,grassland,invertebrate:1,ground,2,7,81,no_power,none,none,0,
+American Bittern,wetland,fish:1,ground,2,6,107,no_power,none,none,0,
+American Coot,wetland,seed:1,ground,3,3,61,once_between_turns,once_btw_lay_egg,other,0,When another player takes the lay eggs action lay 1 egg on any bird
+American Crow,forest,invertebrate:1,platform,2,4,100,when_activated,tuck_card_deck,accumulate,0,Tuck 1 card from the deck under this bird
+American Goldfinch,forest,seed:1,cup,2,4,13,all_players,flocking,flocking,0,All players: tuck 1 card and gain 1 egg on any bird
+American Kestrel,grassland,rodent:1,cavity,2,5,58,when_activated,predator,predator,30,Hunt: draw 1 card from deck; if wingspan <=30 tuck it
+American Robin,forest,invertebrate:1,cup,3,3,41,no_power,none,none,0,
+American White Pelican,wetland,fish:3,platform,1,9,244,no_power,none,none,0,
+Anna's Hummingbird,forest,seed:1,cup,3,6,11,when_activated,gain_food_feeder,productive,0,Gain 1 food from the feeder
+Bald Eagle,forest,fish:2,platform,1,9,213,no_power,none,none,0,
+Baltimore Oriole,forest,fruit:1,cup,3,5,30,when_played,when_played_draw,other,1,Draw 1 card when played
+Bank Swallow,grassland,invertebrate:1,cavity,5,2,33,no_power,none,none,0,
+Barn Owl,grassland,rodent:1,cavity,2,6,110,when_activated,predator,predator,50,Hunt: draw 1 card; if wingspan <=50 tuck it
+Barn Swallow,grassland,invertebrate:1,cup,4,3,33,no_power,none,none,0,
+Barred Owl,forest,rodent:2,cavity,3,5,112,when_played,when_played_draw,other,2,Draw 2 cards when played
+Black-capped Chickadee,forest,seed:1,cavity,5,3,19,when_activated,tuck_card_deck,accumulate,0,Tuck 1 card from the deck under this bird
+Black-crowned Night-Heron,wetland,fish:1,platform,3,4,64,when_activated,lay_egg_self,productive,0,Lay 1 egg on this bird
+Black-headed Grosbeak,forest,seed:2,cup,3,3,33,no_power,none,none,0,
+Black-necked Stilt,wetland,invertebrate:2,ground,2,7,74,no_power,none,none,0,
+Blue Jay,forest,seed:2,cup,2,4,43,once_between_turns,once_btw_lay_egg,other,0,When another player takes the lay eggs action lay 1 egg on any bird
+Blue-gray Gnatcatcher,forest,invertebrate:1,cup,5,4,13,when_activated,lay_egg_self,productive,0,Lay 1 egg on this bird
+Blue-winged Teal,wetland,invertebrate:1,ground,3,3,59,no_power,none,none,0,
+Bobolink,grassland,seed:2,ground,2,5,31,no_power,none,none,0,
+Brown-headed Cowbird,forest,seed:1,cup,2,3,31,once_between_turns,once_btw_lay_egg,other,0,When another player plays a bird lay 1 egg on any bird
+Brown-headed Nuthatch,forest,invertebrate:1,cavity,5,4,10,when_activated,draw_card,productive,0,Draw 1 card from the deck
+Bufflehead,wetland,invertebrate:2,cavity,2,7,58,no_power,none,none,0,
+California Condor,grassland,rodent:2,platform,1,8,290,no_power,none,none,0,
+California Quail,grassland,seed:2,ground,4,2,34,once_between_turns,once_btw_lay_egg,other,0,When another player takes the lay eggs action lay 1 egg on any bird
+Canada Goose,grassland,seed:3,ground,3,5,162,no_power,none,none,0,
+Canvasback,wetland,invertebrate:2,ground,3,5,58,no_power,none,none,0,
+Carolina Wren,forest,invertebrate:1,cavity,5,3,14,when_activated,gain_food_feeder,productive,0,Gain 1 food from the feeder
+Cedar Waxwing,forest,fruit:2,cup,3,4,24,when_activated,tuck_card_deck,accumulate,0,Tuck 1 card from the deck under this bird
+Chestnut-backed Chickadee,forest,invertebrate:1,cavity,5,3,18,when_activated,tuck_card_deck,accumulate,0,Tuck 1 card from the deck under this bird
+Chipping Sparrow,forest,seed:1,cup,4,3,22,when_activated,gain_food_supply,productive,0,Gain 1 seed from the supply
+Cliff Swallow,grassland,invertebrate:1,cup,4,3,33,no_power,none,none,0,
+Common Grackle,grassland,invertebrate:1,cup,3,3,46,once_between_turns,once_btw_gain_food,other,0,When another player takes the gain food action gain 1 invertebrate from supply
+Common Loon,wetland,fish:2,ground,2,8,137,no_power,none,none,0,
+Common Merganser,wetland,fish:2,cavity,2,6,97,when_activated,predator,predator,75,Hunt: draw 1 card; if wingspan <=75 tuck it
+Common Nighthawk,grassland,invertebrate:1,ground,2,4,61,no_power,none,none,0,
+Common Raven,forest,rodent:1,platform,2,5,122,when_activated,draw_card,productive,0,Draw 1 card from the deck
+Common Tern,wetland,fish:1,ground,2,4,79,when_activated,lay_egg_self,productive,0,Lay 1 egg on this bird
+Cooper's Hawk,forest,rodent:1,platform,2,5,85,when_activated,predator,predator,50,Hunt: draw 1 card; if wingspan <=50 tuck it
+Dark-eyed Junco,forest,seed:1,cup,4,3,22,once_between_turns,once_btw_gain_food,other,0,When another player takes the gain food action gain 1 food from supply
+Dickcissel,grassland,seed:2,cup,3,3,24,no_power,none,none,0,
+Double-crested Cormorant,wetland,fish:2,platform,2,5,134,when_activated,lay_egg_any,productive,0,Lay 1 egg on any bird
+Downy Woodpecker,forest,invertebrate:1,cavity,4,3,30,when_activated,gain_food_feeder,productive,0,Gain 1 food from the feeder
+Dunlin,wetland,invertebrate:1,ground,3,3,46,once_between_turns,once_btw_lay_egg,other,0,When another player takes the lay eggs action lay 1 egg on any bird
+Eastern Bluebird,grassland,invertebrate:1,cavity,4,4,33,once_between_turns,once_btw_lay_egg,other,0,When another player plays a bird lay 1 egg on this bird
+Eastern Kingbird,grassland,invertebrate:2,cup,2,5,38,no_power,none,none,0,
+Eastern Meadowlark,grassland,invertebrate:1,ground,3,4,38,no_power,none,none,0,
+Eastern Phoebe,grassland,invertebrate:1,cup,2,3,27,when_played,when_played_gain_food,other,1,Gain 1 food from the feeder when played
+Eastern Screech-Owl,forest,rodent:1,cavity,3,5,55,when_activated,predator,predator,75,Hunt: draw 1 card; if wingspan <=75 tuck it
+Eastern Towhee,forest,seed:2,cup,3,4,23,no_power,none,none,0,
+Eastern Whip-poor-will,grassland,invertebrate:1,ground,2,4,47,no_power,none,none,0,
+European Starling,forest,invertebrate:1,cavity,5,2,40,all_players,flocking,flocking,0,All players: tuck 1 card from hand and gain 1 egg
+Evening Grosbeak,forest,seed:3,cup,3,5,38,no_power,none,none,0,
+Ferruginous Hawk,grassland,rodent:2,platform,2,7,152,when_activated,predator,predator,100,Hunt: draw 1 card; if wingspan <=100 tuck it
+Franklin's Gull,wetland,invertebrate:2,ground,2,4,89,no_power,none,none,0,
+Golden Eagle,grassland,rodent:2,platform,1,8,213,when_activated,predator,predator,150,Hunt: draw 1 card; if wingspan <=150 tuck it
+Golden-crowned Kinglet,forest,invertebrate:1,cup,5,3,18,when_activated,lay_egg_self,productive,0,Lay 1 egg on this bird
+Grasshopper Sparrow,grassland,seed:1,ground,4,3,19,once_between_turns,once_btw_lay_egg,other,0,When another player takes the lay eggs action lay 1 egg on any bird
+Gray Catbird,forest,fruit:1,cup,3,4,30,when_activated,draw_card,productive,0,Draw 1 card from the deck
+Great Blue Heron,wetland,fish:2,platform,2,5,213,when_activated,lay_egg_any,productive,0,Lay 1 egg on any bird
+Great Egret,wetland,fish:2,platform,2,5,160,when_activated,lay_egg_any,productive,0,Lay 1 egg on any bird
+Great Horned Owl,forest,rodent:2,platform,2,6,152,when_activated,predator,predator,100,Hunt: draw 1 card; if wingspan <=100 tuck it
+Greater Roadrunner,grassland,rodent:2,platform,2,6,61,when_activated,predator,predator,75,Hunt: draw 1 card; if wingspan <=75 tuck it
+Greater Scaup,wetland,invertebrate:2,ground,3,4,76,no_power,none,none,0,
+Green Heron,wetland,fish:1,platform,3,4,66,when_activated,lay_egg_self,productive,0,Lay 1 egg on this bird
+Green-winged Teal,wetland,invertebrate:1,ground,3,3,58,no_power,none,none,0,
+Hairy Woodpecker,forest,invertebrate:1,cavity,4,4,38,when_activated,tuck_card_deck,accumulate,0,Tuck 1 card from the deck under this bird
+Hermit Thrush,forest,fruit:1,cup,3,4,17,when_activated,gain_food_feeder,productive,0,Gain 1 food from the feeder
+Hooded Merganser,wetland,fish:1,cavity,2,6,67,when_activated,predator,predator,75,Hunt: draw 1 card; if wingspan <=75 tuck it
+House Finch,forest,seed:1,cup,4,3,25,once_between_turns,once_btw_gain_food,other,0,When another player takes the gain food action gain 1 seed from supply
+House Sparrow,forest,seed:1,cup,5,2,23,no_power,none,none,0,
+House Wren,forest,invertebrate:1,cavity,5,3,15,when_activated,lay_egg_self,productive,0,Lay 1 egg on this bird
+Indigo Bunting,forest,seed:2,cup,3,4,23,no_power,none,none,0,
+Killdeer,grassland,invertebrate:1,ground,3,3,59,when_activated,lay_egg_self,productive,0,Lay 1 egg on this bird
+Lark Bunting,grassland,seed:2,ground,3,4,28,no_power,none,none,0,
+Lark Sparrow,grassland,seed:2,ground,4,3,28,no_power,none,none,0,
+Lazuli Bunting,forest,seed:2,cup,3,4,23,no_power,none,none,0,
+Least Bittern,wetland,fish:1,platform,3,4,44,when_activated,lay_egg_self,productive,0,Lay 1 egg on this bird
+Least Sandpiper,wetland,invertebrate:1,ground,3,3,38,no_power,none,none,0,
+Lesser Goldfinch,forest,seed:1,cup,4,3,20,when_activated,gain_food_feeder,productive,0,Gain 1 food from the feeder
+Lesser Scaup,wetland,invertebrate:2,ground,3,4,71,no_power,none,none,0,
+Loggerhead Shrike,grassland,rodent:1,cup,3,5,30,when_activated,predator,predator,50,Hunt: draw 1 card; if wingspan <=50 tuck it
+Long-eared Owl,forest,rodent:1,platform,2,5,100,when_activated,predator,predator,75,Hunt: draw 1 card; if wingspan <=75 tuck it
+Mallard,wetland,seed:2,ground,4,4,97,no_power,none,none,0,
+Marbled Godwit,wetland,invertebrate:2,ground,2,7,74,no_power,none,none,0,
+Marsh Wren,wetland,invertebrate:1,cup,4,3,14,when_activated,lay_egg_self,productive,0,Lay 1 egg on this bird
+Merlin,forest,rodent:1,platform,2,4,66,when_activated,predator,predator,50,Hunt: draw 1 card; if wingspan <=50 tuck it
+Mountain Bluebird,grassland,invertebrate:1,cavity,4,4,33,once_between_turns,once_btw_lay_egg,other,0,When another player plays a bird lay 1 egg on any bird
+Mourning Dove,grassland,seed:2,platform,2,3,47,no_power,none,none,0,
+Northern Bobwhite,grassland,seed:2,ground,3,3,29,no_power,none,none,0,
+Northern Cardinal,forest,seed:2,cup,3,4,32,once_between_turns,once_btw_gain_food,other,0,When another player takes the gain food action gain 1 seed from supply
+Northern Flicker,forest,invertebrate:1,cavity,4,5,51,when_activated,gain_food_feeder,productive,0,Gain 1 food from the feeder
+Northern Gannet,wetland,fish:3,platform,1,9,182,no_power,none,none,0,
+Northern Harrier,grassland,rodent:1,platform,2,5,110,when_activated,predator,predator,75,Hunt: draw 1 card; if wingspan <=75 tuck it
+Northern Mockingbird,grassland,invertebrate:1,cup,3,3,36,no_power,none,none,0,
+Northern Pintail,wetland,seed:2,ground,3,5,86,no_power,none,none,0,
+Northern Saw-whet Owl,forest,rodent:1,cavity,3,5,55,when_activated,predator,predator,50,Hunt: draw 1 card; if wingspan <=50 tuck it
+Northern Shoveler,wetland,invertebrate:1,ground,3,4,81,no_power,none,none,0,
+Olive-sided Flycatcher,forest,invertebrate:1,cup,2,3,30,no_power,none,none,0,
+Osprey,wetland,fish:2,platform,1,7,180,when_activated,predator,predator,100,Hunt: draw 1 card; if wingspan <=100 tuck it
+Painted Bunting,grassland,seed:2,cup,3,5,23,no_power,none,none,0,
+Peregrine Falcon,grassland,rodent:1,star,1,6,110,when_activated,predator,predator,75,Hunt: draw 1 card; if wingspan <=75 tuck it
+Pied-billed Grebe,wetland,fish:1,platform,3,4,57,when_activated,lay_egg_self,productive,0,Lay 1 egg on this bird
+Pigeon Guillemot,wetland,fish:2,cavity,2,6,58,no_power,none,none,0,
+Pileated Woodpecker,forest,invertebrate:2,cavity,3,6,73,when_activated,cache_food,accumulate,0,Cache 1 food on this bird
+Pine Siskin,forest,seed:1,cup,4,3,21,once_between_turns,once_btw_gain_food,other,0,When another player takes the gain food action gain 1 food from supply
+Prairie Falcon,grassland,rodent:2,star,1,6,105,when_activated,predator,predator,75,Hunt: draw 1 card; if wingspan <=75 tuck it
+Purple Martin,grassland,invertebrate:2,cavity,4,4,32,no_power,none,none,0,
+Red Crossbill,forest,seed:2,cup,4,4,28,when_activated,gain_food_feeder,productive,0,Gain 1 food from the feeder
+Red Knot,wetland,invertebrate:2,ground,2,5,58,no_power,none,none,0,
+Red-bellied Woodpecker,forest,invertebrate:1,cavity,4,4,43,when_activated,gain_food_feeder,productive,0,Gain 1 food from the feeder
+Red-breasted Merganser,wetland,fish:2,ground,2,6,76,when_activated,predator,predator,75,Hunt: draw 1 card; if wingspan <=75 tuck it
+Red-headed Woodpecker,forest,invertebrate:1,cavity,3,5,43,when_activated,cache_food,accumulate,0,Cache 1 food on this bird
+Red-tailed Hawk,grassland,rodent:2,platform,2,7,143,when_activated,predator,predator,100,Hunt: draw 1 card; if wingspan <=100 tuck it
+Red-winged Blackbird,wetland,seed:2,cup,3,3,36,once_between_turns,once_btw_lay_egg,other,0,When another player takes the lay eggs action lay 1 egg on any bird
+Ring-billed Gull,wetland,fish:1,ground,2,4,122,no_power,none,none,0,
+Ring-necked Duck,wetland,invertebrate:2,ground,3,4,71,no_power,none,none,0,
+Rose-breasted Grosbeak,forest,seed:2,cup,3,5,32,no_power,none,none,0,
+Ruby-crowned Kinglet,forest,invertebrate:1,cup,5,3,19,when_activated,lay_egg_self,productive,0,Lay 1 egg on this bird
+Ruby-throated Hummingbird,forest,seed:1,cup,3,6,9,when_activated,gain_food_feeder,productive,0,Gain 1 food from the feeder
+Ruffed Grouse,forest,seed:3,ground,4,4,57,once_between_turns,once_btw_lay_egg,other,0,When another player plays a bird lay 1 egg on this bird
+Rufous Hummingbird,forest,seed:1,cup,3,6,11,when_activated,gain_food_feeder,productive,0,Gain 1 food from the feeder
+Sandhill Crane,grassland,seed:3,ground,2,8,193,no_power,none,none,0,
+Say's Phoebe,grassland,invertebrate:1,cup,2,3,30,no_power,none,none,0,
+Semipalmated Plover,wetland,invertebrate:1,ground,3,3,47,no_power,none,none,0,
+Short-eared Owl,grassland,rodent:2,ground,2,6,106,when_activated,predator,predator,75,Hunt: draw 1 card; if wingspan <=75 tuck it
+Snow Bunting,grassland,seed:2,cup,3,3,34,no_power,none,none,0,
+Snow Goose,grassland,seed:4,ground,3,6,152,no_power,none,none,0,
+Song Sparrow,grassland,seed:1,cup,4,3,19,once_between_turns,once_btw_lay_egg,other,0,When another player takes the lay eggs action lay 1 egg on any bird
+Spotted Sandpiper,wetland,invertebrate:1,ground,3,3,38,when_activated,lay_egg_self,productive,0,Lay 1 egg on this bird
+Spotted Towhee,forest,seed:2,cup,3,3,26,no_power,none,none,0,
+Steller's Jay,forest,seed:2,cup,2,4,43,once_between_turns,once_btw_gain_food,other,0,When another player takes the gain food action gain 1 food from supply
+Surf Scoter,wetland,invertebrate:2,ground,2,5,76,no_power,none,none,0,
+Swainson's Hawk,grassland,rodent:1,platform,2,6,130,when_activated,predator,predator,100,Hunt: draw 1 card; if wingspan <=100 tuck it
+Swamp Sparrow,wetland,seed:1,cup,4,3,18,when_activated,lay_egg_self,productive,0,Lay 1 egg on this bird
+Tree Swallow,grassland,invertebrate:1,cavity,4,3,37,no_power,none,none,0,
+Tufted Puffin,wetland,fish:3,cavity,1,8,63,no_power,none,none,0,
+Tufted Titmouse,forest,seed:1,cavity,5,4,16,when_activated,gain_food_feeder,productive,0,Gain 1 food from the feeder
+Turkey Vulture,grassland,rodent:1,platform,1,5,183,no_power,none,none,0,
+Vesper Sparrow,grassland,seed:2,ground,4,3,23,no_power,none,none,0,
+Virginia Rail,wetland,invertebrate:2,cup,4,4,34,when_activated,lay_egg_any,productive,0,Lay 1 egg on any bird
+Whimbrel,wetland,invertebrate:3,ground,2,7,89,no_power,none,none,0,
+White-breasted Nuthatch,forest,seed:1,cavity,5,4,27,when_activated,gain_food_feeder,productive,0,Gain 1 food from the feeder
+White-crowned Sparrow,grassland,seed:2,cup,4,3,24,once_between_turns,once_btw_gain_food,other,0,When another player takes the gain food action gain 1 food from supply
+White-throated Sparrow,forest,seed:2,cup,4,3,23,no_power,none,none,0,
+Wild Turkey,grassland,seed:4,ground,3,7,134,no_power,none,none,0,
+Willet,wetland,invertebrate:2,ground,2,5,71,no_power,none,none,0,
+Willow Ptarmigan,grassland,seed:3,ground,5,4,66,end_of_round,end_round_lay_egg,other,0,At end of each round lay 1 egg on any bird
+Wilson's Snipe,wetland,invertebrate:2,ground,3,4,44,no_power,none,none,0,
+Wood Duck,wetland,fruit:2,cavity,3,5,73,when_activated,lay_egg_any,productive,0,Lay 1 egg on any bird
+Wood Thrush,forest,invertebrate:2,cup,3,5,33,when_played,when_played_draw,other,2,Draw 2 cards when played
+Wrentit,forest,invertebrate:1,cup,3,4,15,when_activated,draw_card,productive,0,Draw 1 card from the deck
+Yellow Warbler,forest,invertebrate:1,cup,4,3,20,end_of_round,end_round_lay_egg,other,0,At end of each round lay 1 egg on any bird
+Yellow-headed Blackbird,wetland,seed:2,cup,3,4,40,all_players,flocking,flocking,0,All players: tuck 1 card from hand and gain 1 egg
+Yellow-rumped Warbler,forest,invertebrate:1,cup,4,3,19,when_activated,gain_food_feeder,productive,0,Gain 1 food from the feeder
+Yellow-billed Cuckoo,forest,invertebrate:2,platform,2,5,53,when_played,when_played_draw,other,2,Draw 2 cards when played
+Eared Grebe,wetland,invertebrate:1,platform,3,4,57,when_activated,lay_egg_self,productive,0,Lay 1 egg on this bird
+Forster's Tern,wetland,fish:1,ground,2,4,79,when_activated,lay_egg_self,productive,0,Lay 1 egg on this bird
+Gadwall,wetland,seed:2,ground,3,4,91,no_power,none,none,0,
+Great Kiskadee,grassland,invertebrate:1,cup,3,4,25,when_activated,gain_food_feeder,productive,0,Gain 1 food from the feeder
+Greater Prairie-Chicken,grassland,seed:3,ground,4,5,66,no_power,none,none,0,
+Greater White-fronted Goose,grassland,seed:3,ground,3,5,137,no_power,none,none,0,
+Green-backed Heron,wetland,fish:1,platform,3,4,62,when_activated,lay_egg_self,productive,0,Lay 1 egg on this bird
+Herring Gull,wetland,fish:1,ground,2,5,147,no_power,none,none,0,
+Horned Grebe,wetland,invertebrate:1,platform,4,4,60,when_activated,lay_egg_self,productive,0,Lay 1 egg on this bird
+Horned Lark,grassland,seed:1,ground,5,3,31,once_between_turns,once_btw_gain_food,other,0,When another player takes the gain food action gain 1 food from supply
+Lazuli Bunting 2,forest,seed:2,cup,3,4,22,no_power,none,none,0,
+Least Flycatcher,forest,invertebrate:1,cup,4,3,21,when_activated,draw_card,productive,0,Draw 1 card from the deck
+Lesser Prairie-Chicken,grassland,seed:2,ground,4,4,57,no_power,none,none,0,
+Lincoln's Sparrow,grassland,seed:1,cup,5,3,18,no_power,none,none,0,
+Little Blue Heron,wetland,fish:1,platform,3,4,60,when_activated,lay_egg_self,productive,0,Lay 1 egg on this bird
+Loggerhead Shrike 2,grassland,rodent:1,cup,3,5,28,when_activated,predator,predator,50,Hunt: draw 1 card; if wingspan <=50 tuck it
+Magnolia Warbler,forest,invertebrate:1,cup,4,3,18,no_power,none,none,0,
+Nashville Warbler,forest,invertebrate:1,cup,4,3,19,when_activated,gain_food_feeder,productive,0,Gain 1 food from the feeder
+Orange-crowned Warbler,forest,invertebrate:1,cup,4,3,20,no_power,none,none,0,
+Orchard Oriole,forest,fruit:1,cup,3,4,23,once_between_turns,once_btw_draw,other,0,When another player takes the draw cards action draw 1 card
+Pacific Loon,wetland,fish:2,ground,2,7,110,no_power,none,none,0,
+Painted Redstart,forest,invertebrate:1,cup,4,3,20,no_power,none,none,0,
+Palm Warbler,grassland,invertebrate:1,cup,4,3,19,no_power,none,none,0,
+Pectoral Sandpiper,wetland,invertebrate:1,ground,3,3,46,no_power,none,none,0,
+Philadelphia Vireo,forest,invertebrate:1,cup,3,3,20,no_power,none,none,0,
+Prothonotary Warbler,wetland,invertebrate:1,cup,4,4,22,when_played,when_played_lay_egg,other,2,Lay 2 eggs when played
+Red Phalarope,wetland,invertebrate:2,ground,2,5,44,no_power,none,none,0,
+Redhead,wetland,invertebrate:2,ground,3,5,71,no_power,none,none,0,
+Ring-necked Pheasant,grassland,seed:3,ground,5,4,86,no_power,none,none,0,
+Rock Pigeon,grassland,seed:2,platform,2,2,64,no_power,none,none,0,
+Ross's Goose,grassland,seed:3,ground,3,5,130,no_power,none,none,0,
+Ruddy Turnstone,wetland,invertebrate:2,ground,2,4,53,no_power,none,none,0,
+Rufous-sided Towhee,forest,seed:2,cup,3,4,24,no_power,none,none,0,
+Rusty Blackbird,wetland,seed:1,cup,3,3,37,once_between_turns,once_btw_lay_egg,other,0,When another player takes the lay eggs action lay 1 egg on any bird
+Savannah Sparrow,grassland,seed:1,ground,5,3,20,no_power,none,none,0,
+Scarlet Tanager,forest,fruit:2,cup,3,5,30,when_activated,gain_food_feeder,productive,0,Gain 1 food from the feeder
+Sharp-shinned Hawk,forest,rodent:1,platform,2,4,58,when_activated,predator,predator,50,Hunt: draw 1 card; if wingspan <=50 tuck it
+Snowy Egret,wetland,fish:1,platform,3,4,104,when_activated,lay_egg_any,productive,0,Lay 1 egg on any bird
+Snowy Owl,grassland,rodent:3,platform,2,9,152,when_activated,predator,predator,100,Hunt: draw 1 card; if wingspan <=100 tuck it
+Solitary Sandpiper,wetland,invertebrate:1,ground,3,3,58,no_power,none,none,0,
+Sprague's Pipit,grassland,seed:1,ground,4,3,27,no_power,none,none,0,
+Tricolored Heron,wetland,fish:2,platform,2,5,96,when_activated,lay_egg_any,productive,0,Lay 1 egg on any bird
+Upland Sandpiper,grassland,invertebrate:2,ground,2,6,68,no_power,none,none,0,
+Veery,forest,fruit:1,cup,3,4,29,no_power,none,none,0,
+Wading Egret,wetland,fish:1,platform,2,4,90,when_activated,lay_egg_any,productive,0,Lay 1 egg on any bird
+Western Grebe,wetland,fish:2,platform,2,7,90,when_activated,predator,predator,75,Hunt: draw 1 card; if wingspan <=75 tuck it
+Western Meadowlark,grassland,invertebrate:1,ground,3,4,38,no_power,none,none,0,
+Western Sandpiper,wetland,invertebrate:1,ground,3,3,36,no_power,none,none,0,
+White Ibis,wetland,invertebrate:3,platform,2,7,97,no_power,none,none,0,
+White-faced Ibis,wetland,invertebrate:3,platform,2,6,91,no_power,none,none,0,
+White-tailed Kite,grassland,rodent:1,platform,2,5,100,when_activated,predator,predator,50,Hunt: draw 1 card; if wingspan <=50 tuck it
+White-throated Swift,grassland,invertebrate:2,cavity,3,4,40,no_power,none,none,0,
+Wild Turkey 2,grassland,seed:4,ground,3,7,130,no_power,none,none,0,
+Yellow-crowned Night-Heron,wetland,fish:1,platform,3,4,110,when_activated,lay_egg_self,productive,0,Lay 1 egg on this bird

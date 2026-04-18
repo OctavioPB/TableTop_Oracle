@@ -19,7 +19,8 @@ def test_import_game_engine() -> None:
 
 
 def test_import_wingspan_state() -> None:
-    from src.games.wingspan.state import FoodType, Habitat, WingspanState
+    from src.games.wingspan.cards import FoodType, Habitat
+    from src.games.wingspan.state import WingspanState
 
     assert Habitat.FOREST == "forest"
     assert FoodType.SEED == "seed"
