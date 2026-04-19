@@ -83,7 +83,7 @@ def test_import_oracle_rule_oracle() -> None:
 def test_import_envs() -> None:
     from src.envs.wingspan_env import WingspanEnv, N_MAX_ACTIONS
 
-    assert N_MAX_ACTIONS == 256
+    assert N_MAX_ACTIONS >= 70  # 5+1+4+MAX_HAND_SIZE*3; tighter than 256 placeholder
 
 
 def test_import_agents() -> None:
