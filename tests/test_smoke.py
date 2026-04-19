@@ -155,5 +155,5 @@ def test_demo_buffer_len() -> None:
 
     buf = DemonstrationBuffer()
     assert len(buf) == 0
-    buf.add_game([Transition(state=None, action=None, next_state=None, reward=0.0, done=False)])
+    buf.add_game([Transition(obs={}, action=0, next_obs={}, reward=0.0, done=False)])
     assert len(buf) == 1

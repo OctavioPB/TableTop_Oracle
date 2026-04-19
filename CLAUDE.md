@@ -434,7 +434,7 @@ Sprint 1 — Rule Interpreter    [x] Completado (2026-04-18)
 Sprint 2 — Wingspan Engine     [x] Completado (2026-04-17)
 Sprint 3 — Gym Environment     [x] Completado (2026-04-18)
 Sprint 4 — RL Agent            [x] Completado (2026-04-18)
-Sprint 5 — Imitation Learning  [ ] No iniciado
+Sprint 5 — Imitation Learning  [x] Completado (2026-04-18)
 Sprint 6 — Evaluación          [ ] No iniciado
 Sprint 7 — Generalización      [ ] No iniciado
 ```
