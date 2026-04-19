@@ -435,7 +435,7 @@ Sprint 2 — Wingspan Engine     [x] Completado (2026-04-17)
 Sprint 3 — Gym Environment     [x] Completado (2026-04-18)
 Sprint 4 — RL Agent            [x] Completado (2026-04-18)
 Sprint 5 — Imitation Learning  [x] Completado (2026-04-18)
-Sprint 6 — Evaluación          [ ] No iniciado
+Sprint 6 — Evaluación          [x] Completado (2026-04-19)
 Sprint 7 — Generalización      [ ] No iniciado
 ```
 
@@ -453,6 +453,94 @@ Actualiza esta sección al final de cada sesión de trabajo.
    conmigo antes de escribir código.
 6. Implementa, escribe tests, verifica que pasan.
 7. Actualiza el estado del sprint en este archivo.
+
+---
+
+## Lecciones aprendidas (Sprints 0–5)
+
+Bugs reales encontrados durante el desarrollo — registrados para no repetirlos.
+
+### S2 — Motor de juego
+
+**`TURNS_PER_ROUND` en el import incorrecto**
+`engine.py` lo importaba desde `cards.py` pero vive en `state.py`.
+Regla: antes de importar una constante, verificar en qué módulo está definida,
+no asumir por el nombre del archivo.
+
+**Aliasing en `WingspanPlayerBoard.from_dict()`**
+`food_supply=d.get("food_supply", {})` devolvía referencia al dict interno del
+estado serializado. Mutar el board mutaba el estado original.
+Regla: cualquier `from_dict()` o constructor que recibe colecciones mutables
+debe hacer copia defensiva: `dict(...)`, `list(...)`.
+
+### S3 — Entorno gym
+
+**`check_env()` falla si los valores de observación salen de [0, 1]**
+Varios campos (food_supply, eggs) podían superar 1.0 sin normalización explícita.
+Regla: todos los valores del observation space van por `np.clip(v, 0.0, 1.0)`
+antes de devolverlos. No confiar en que los rangos del juego sean acotados.
+
+**Invariante `player_id == 0` requiere manejo explícito en cada salida de `step()`**
+Al terminar una ronda, `_end_round()` restablece `player_id`. En los turnos
+normales (no fin de ronda), hay que forzar `model_copy(update={"player_id": 0})`
+manualmente. Sin esto, `action_masks()` calcularía legal actions para P1.
+Regla: en single-agent mode, documentar el invariante y verificarlo con test.
+
+### S4 — Agente RL
+
+**`DummyVecEnv` llama `env.action_masks()` vía `env_method`**
+No se necesita el wrapper `ActionMasker` de sb3-contrib cuando el env tiene
+`action_masks()` como método público. `MaskablePPO` lo detecta automáticamente.
+Regla: no agregar wrappers de compatibilidad que ya están cubiertos por el framework.
+
+**`build_maskable_ppo` debe separar `features_dim` y `net_arch` del dict `**hp`**
+`MaskablePPO.__init__` no acepta `features_dim` ni `net_arch` como kwargs directos;
+van dentro de `policy_kwargs`. Si se pasan en `**hp`, el constructor falla con
+`unexpected keyword argument`.
+Regla: leer la firma del constructor antes de usar `**kwargs` para pasar config.
+
+### S5 — Imitation learning
+
+**`Transition` debe almacenar observaciones gym (dict de numpy), no estados del motor**
+El diseño inicial tenía `state: WingspanState` en `Transition`. BC necesita obs
+tensorizables, no objetos Pydantic. Cambiar a `obs: dict[str, np.ndarray]` eliminó
+la dependencia entre el buffer y el motor de juego.
+Regla: los componentes de RL (buffer, trainer) operan sobre el espacio de obs gym,
+no sobre los objetos de dominio del motor.
+
+**`BehavioralCloningTrainer.evaluate()` debe llamar `policy.to(device)` explícitamente**
+`MaskablePPO` detecta CUDA y pone la policy en GPU por default. Si `evaluate()`
+se llama sin mover previamente la policy al device del trainer, los tensores de
+obs (CPU) y los pesos del modelo (CUDA) chocan en runtime.
+Regla: toda función que hace inferencia debe llamar `policy.to(self._device)` antes
+del primer forward pass, no solo en `train()`.
+
+**`BGALogParser` requiere temporalmente cambiar `player_id` en el estado para P1**
+`get_legal_actions()` filtra por `state.player_id`. Si el parser está reproduciendo
+el turno de P1 pero el estado tiene `player_id=0`, las acciones legales devueltas
+son incorrectas. Hay que hacer `model_copy(update={"player_id": 1})` antes de
+consultar legal actions para P1, y restaurar después.
+Regla: cualquier código que llama `get_legal_actions()` fuera de `step()` debe
+asegurarse que `state.player_id` corresponde al jugador correcto.
+
+### Patrones de diseño que funcionaron
+
+- **Smoke test como primer test**: un test que solo hace `import` y una inicialización
+  básica atrapa errores de instalación y de firma de constructores antes de escribir
+  los tests reales. Vale la pena siempre.
+
+- **`model_copy(update={...})` de Pydantic v2 para transiciones de estado**:
+  la inmutabilidad del estado hace que los bugs de aliasing sean raros. El único
+  lugar donde persisten es en `from_dict()` con colecciones anidadas.
+
+- **Separar `_action_to_idx` y `_idx_to_action` como métodos del env, no del agente**:
+  la conversión entre el espacio de acciones del motor y los índices enteros del gym
+  pertenece al env, no al agente. El agente solo ve índices; el motor solo ve acciones.
+
+- **`SyntheticDemoGenerator` como alternativa a datos externos**:
+  para BC, usar el `GreedyAgent` como experto sintético permite desarrollar y testear
+  el pipeline completo sin necesidad de logs de BGA. Los datos reales mejoran la
+  calidad del prior, pero no son necesarios para verificar que el código funciona.
 
 ---
 
