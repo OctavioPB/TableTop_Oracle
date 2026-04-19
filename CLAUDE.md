@@ -436,7 +436,7 @@ Sprint 3 — Gym Environment     [x] Completado (2026-04-18)
 Sprint 4 — RL Agent            [x] Completado (2026-04-18)
 Sprint 5 — Imitation Learning  [x] Completado (2026-04-18)
 Sprint 6 — Evaluación          [x] Completado (2026-04-19)
-Sprint 7 — Generalización      [ ] No iniciado
+Sprint 7 — Generalización      [x] Completado (2026-04-19)
 ```
 
 Actualiza esta sección al final de cada sesión de trabajo.
