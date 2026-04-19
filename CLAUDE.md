@@ -456,7 +456,7 @@ Actualiza esta sección al final de cada sesión de trabajo.
 
 ---
 
-## Lecciones aprendidas (Sprints 0–5)
+## Lecciones aprendidas (Sprints 0–7)
 
 Bugs reales encontrados durante el desarrollo — registrados para no repetirlos.
 
@@ -541,6 +541,77 @@ asegurarse que `state.player_id` corresponde al jugador correcto.
   para BC, usar el `GreedyAgent` como experto sintético permite desarrollar y testear
   el pipeline completo sin necesidad de logs de BGA. Los datos reales mejoran la
   calidad del prior, pero no son necesarios para verificar que el código funciona.
+
+### S6 — Framework de evaluación
+
+**Claves del historial de `WinRateCallback` no coincidían con `steps_to_target_winrate`**
+`WinRateCallback` produce dicts con claves `"timestep"` y `"win_rate_vs_random"`.
+`steps_to_target_winrate` fue escrita leyendo `"step"` y `"win_rate"` — claves que
+no existen. Los tests de esa función pasaban porque construían sus propios dicts
+con el formato incorrecto, dando falsa confianza.
+Regla: cuando una función consume la salida de otra, verificar que las claves usadas
+coinciden exactamente con las que el productor escribe. Los tests de consumidores
+deben usar datos con el mismo formato que el productor real, no inventados ad hoc.
+
+**`WinRateCallback` requiere `eval_env` como primer argumento**
+`ablation_study.py` llamaba `WinRateCallback(eval_freq=..., n_eval_games=50)` —
+omitiendo el `eval_env` obligatorio y usando el kwarg incorrecto `n_eval_games`
+(el parámetro real se llama `n_eval_episodes`). Habría fallado en tiempo de
+ejecución al arrancar el entrenamiento.
+Regla: al escribir scripts que instancian callbacks de SB3, revisar la firma
+del constructor en el módulo fuente, no solo en la documentación de alto nivel.
+
+### S7 — Generalización (7 Wonders Duel)
+
+**`WingspanEnv.__init__()` no acepta `seed` — el seed va en `reset()`**
+`TTSLogParser` intentaba `WingspanEnv(seed=seed)`. El constructor de `WingspanEnv`
+no tiene parámetro `seed`; el seed se pasa en `env.reset(seed=seed)`.
+Este patrón es consistente con el contrato de `gymnasium.Env`, pero fácil de
+olvidar al reutilizar código entre parsers.
+Regla: en gymnasium, el seed nunca va en `__init__`; siempre en `reset(seed=...)`.
+
+**Los stubs con `NotImplementedError` en módulos importados por smoke tests
+son deuda silenciosa**
+`TTSLogParser.parse_game_log()` y `NormaliseObsWrapper.observation()` tenían
+`raise NotImplementedError` desde sprints anteriores. El smoke test solo hacía
+`import` — pasaba — pero cualquier llamada real fallaba. La deuda no era visible
+en la suite de tests.
+Regla: si un stub va a permanecer sin implementar más de un sprint, añadir un test
+que llame el método (aunque sea con input mínimo) para que la deuda sea visible
+en rojo, no silenciosa en verde.
+
+**Atributo `target_habitat` vs `habitat` en `WingspanAction`**
+Durante la implementación de `rule_violation_rate` en `metrics.py` y
+`build_game_transcript` en `llm_judge.py`, se usó `action.habitat` (campo
+inexistente). El campo real es `action.target_habitat`.
+Regla: antes de acceder a atributos de dataclasses de otros módulos, leer la
+definición en `actions.py` — no asumir el nombre por el contexto semántico.
+
+### Patrones de diseño que funcionaron
+
+- **Smoke test como primer test**: un test que solo hace `import` y una inicialización
+  básica atrapa errores de instalación y de firma de constructores antes de escribir
+  los tests reales. Vale la pena siempre.
+
+- **`model_copy(update={...})` de Pydantic v2 para transiciones de estado**:
+  la inmutabilidad del estado hace que los bugs de aliasing sean raros. El único
+  lugar donde persisten es en `from_dict()` con colecciones anidadas.
+
+- **Separar `_action_to_idx` y `_idx_to_action` como métodos del env, no del agente**:
+  la conversión entre el espacio de acciones del motor y los índices enteros del gym
+  pertenece al env, no al agente. El agente solo ve índices; el motor solo ve acciones.
+
+- **`SyntheticDemoGenerator` como alternativa a datos externos**:
+  para BC, usar el `GreedyAgent` como experto sintético permite desarrollar y testear
+  el pipeline completo sin necesidad de logs de BGA. Los datos reales mejoran la
+  calidad del prior, pero no son necesarios para verificar que el código funciona.
+
+- **Auditoría transversal al final de cada sprint**:
+  revisar activamente las interfaces entre módulos (claves de dicts, firmas de
+  constructores, nombres de atributos) detecta bugs que los tests unitarios no
+  ven porque cada test valida su módulo de forma aislada. Buscar con grep patrones
+  como `entry["clave"]`, `WinRateCallback(`, `action.atributo` y verificar que
+  ambos lados del contrato usan exactamente los mismos nombres.
 
 ---
 

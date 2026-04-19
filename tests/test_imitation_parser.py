@@ -502,3 +502,48 @@ class TestIntegration:
             obs_batch, actions_batch = buf.sample(batch_size=8)
             assert obs_batch["board"].shape[0] == 8
             assert (actions_batch >= 0).all()
+
+
+# ===========================================================================
+# TestTTSLogParser
+# ===========================================================================
+
+class TestTTSLogParser:
+    def test_import(self) -> None:
+        from src.imitation.tts_parser import TTSLogParser
+        assert TTSLogParser is not None
+
+    def test_parse_empty_moves_returns_empty(self) -> None:
+        from src.imitation.tts_parser import TTSLogParser
+        parser = TTSLogParser()
+        result = parser.parse_game_log({"moves": [], "seed": 0})
+        assert result == []
+
+    def test_missing_moves_raises_value_error(self) -> None:
+        import pytest
+        from src.imitation.tts_parser import TTSLogParser
+        parser = TTSLogParser()
+        with pytest.raises(ValueError, match="moves"):
+            parser.parse_game_log({"seed": 0})
+
+    def test_moves_not_list_raises_value_error(self) -> None:
+        import pytest
+        from src.imitation.tts_parser import TTSLogParser
+        parser = TTSLogParser()
+        with pytest.raises(ValueError, match="moves"):
+            parser.parse_game_log({"moves": "invalid", "seed": 0})
+
+    def test_parse_synthetic_log_returns_transitions(self) -> None:
+        """A synthetic BGA-format log (same structure) parsed via TTS parser
+        produces at least one Transition if player-0 actions exist."""
+        from src.imitation.bga_parser import generate_synthetic_bga_log
+        from src.imitation.tts_parser import TTSLogParser
+        from src.imitation.demo_buffer import Transition
+        parser = TTSLogParser()
+        # TTS and BGA share the same move format in our test generator
+        log = generate_synthetic_bga_log(seed=0, n_moves=10)
+        transitions = parser.parse_game_log(log)
+        # May be empty if all player-0 actions were unrecognised; must not crash
+        assert isinstance(transitions, list)
+        for t in transitions:
+            assert isinstance(t, Transition)

@@ -208,20 +208,20 @@ def steps_to_target_winrate(
     win_rate_history: list[dict],
     target: float = 0.55,
 ) -> int | None:
-    """Find the first training step where win_rate_vs_random reached target.
+    """Find the first training timestep where win_rate_vs_random reached target.
 
     Operates on the list of dicts produced by WinRateCallback.win_rate_history:
-        [{"step": int, "win_rate": float, ...}, ...]
+        [{"timestep": int, "win_rate_vs_random": float, ...}, ...]
 
     Args:
         win_rate_history: List of evaluation checkpoints from WinRateCallback.
         target: Win rate threshold (default 0.55 = clearly beating random).
 
     Returns:
-        The training step at which win_rate first met or exceeded target,
-        or None if the target was never reached.
+        The training timestep at which win_rate_vs_random first met or exceeded
+        target, or None if the target was never reached.
     """
     for entry in win_rate_history:
-        if entry.get("win_rate", 0.0) >= target:
-            return int(entry["step"])
+        if entry.get("win_rate_vs_random", 0.0) >= target:
+            return int(entry["timestep"])
     return None

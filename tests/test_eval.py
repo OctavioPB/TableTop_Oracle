@@ -160,21 +160,21 @@ class TestMetrics:
     def test_steps_to_target_winrate_found(self):
         from src.eval.metrics import steps_to_target_winrate
         history = [
-            {"step": 50_000, "win_rate": 0.40},
-            {"step": 100_000, "win_rate": 0.52},
-            {"step": 150_000, "win_rate": 0.60},
+            {"timestep": 50_000,  "win_rate_vs_random": 0.40},
+            {"timestep": 100_000, "win_rate_vs_random": 0.52},
+            {"timestep": 150_000, "win_rate_vs_random": 0.60},
         ]
         step = steps_to_target_winrate(history, target=0.55)
         assert step == 150_000
 
     def test_steps_to_target_winrate_not_reached(self):
         from src.eval.metrics import steps_to_target_winrate
-        history = [{"step": 50_000, "win_rate": 0.45}]
+        history = [{"timestep": 50_000, "win_rate_vs_random": 0.45}]
         assert steps_to_target_winrate(history, target=0.80) is None
 
     def test_steps_to_target_winrate_exact_match(self):
         from src.eval.metrics import steps_to_target_winrate
-        history = [{"step": 200_000, "win_rate": 0.55}]
+        history = [{"timestep": 200_000, "win_rate_vs_random": 0.55}]
         assert steps_to_target_winrate(history, target=0.55) == 200_000
 
     def test_steps_to_target_winrate_empty_history(self):

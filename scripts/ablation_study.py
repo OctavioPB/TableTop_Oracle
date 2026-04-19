@@ -128,10 +128,12 @@ def _run_condition_baseline(
 
     tb_log = None if no_tensorboard else str(exp_dir / "tensorboard")
     env = make_vec_env(lambda: WingspanEnv(reward_mode=reward_mode, seed=seed), n_envs=n_envs)
+    eval_env = WingspanEnv(reward_mode=reward_mode, seed=seed + 9999)
     model = build_maskable_ppo(env, seed=seed, tensorboard_log=tb_log)
 
-    cb = WinRateCallback(eval_freq=50_000, n_eval_games=50)
+    cb = WinRateCallback(eval_env=eval_env, eval_freq=50_000, n_eval_episodes=50)
     model.learn(total_timesteps=total_timesteps, callback=cb, progress_bar=True)
+    eval_env.close()
 
     checkpoint = exp_dir / "ppo_baseline.zip"
     model.save(str(checkpoint))
@@ -189,8 +191,10 @@ def _run_condition_bc_ppo(
     model_ppo = build_maskable_ppo(env_vec, seed=seed, tensorboard_log=tb_log)
     load_bc_weights_into_ppo(model_bc, model_ppo)
 
-    cb = WinRateCallback(eval_freq=50_000, n_eval_games=50)
+    eval_env_ppo = WingspanEnv(reward_mode=reward_mode, seed=seed + 9999)
+    cb = WinRateCallback(eval_env=eval_env_ppo, eval_freq=50_000, n_eval_episodes=50)
     model_ppo.learn(total_timesteps=total_timesteps, callback=cb, progress_bar=True)
+    eval_env_ppo.close()
 
     checkpoint = exp_dir / "ppo_bc.zip"
     model_ppo.save(str(checkpoint))
@@ -291,7 +295,7 @@ def main() -> None:
     # --- Summary table ---
     logger.info("\n=== Ablation summary ===")
     for r in all_results:
-        last_wr = r["win_rate_history"][-1]["win_rate"] if r.get("win_rate_history") else "N/A"
+        last_wr = r["win_rate_history"][-1]["win_rate_vs_random"] if r.get("win_rate_history") else "N/A"
         logger.info(
             "  condition=%-12s  seed=%d  final_win_rate=%s",
             r["condition"], r["seed"], last_wr,
