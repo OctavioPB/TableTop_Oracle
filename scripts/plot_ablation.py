@@ -49,9 +49,9 @@ def _mean_std_per_timestep(
 
 CONDITION_LABELS = {
     "baseline": "PPO (baseline)",
-    "bc_ppo":   "BC → PPO (ours)",
+    "bc_ppo":   "BC+PPO (ours)",
     "rag":      "PPO + RAG",
-    "full":     "BC → PPO + RAG (full)",
+    "full":     "BC+PPO+RAG (full)",
 }
 
 CONDITION_COLORS = {
@@ -120,7 +120,7 @@ def plot_ablation(results_path: Path, output_path: Path) -> None:
         )
 
     # --- Early convergence: steps to reach 0.55 win rate ---
-    print("\n=== Steps to first reach WR ≥ 0.55 (per seed) ===")
+    print("\n=== Steps to first reach WR >= 0.55 (per seed) ===")
     by_condition: dict[str, list] = defaultdict(list)
     for c in conditions:
         name = c["condition"]

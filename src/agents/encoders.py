@@ -78,3 +78,51 @@ class WingspanFeaturesExtractor(BaseFeaturesExtractor):
 
         concat = torch.cat([board, opp, hand, tray, food, game, goal], dim=-1)
         return self.trunk(concat)
+
+
+class SWDFeaturesExtractor(BaseFeaturesExtractor):
+    """Encodes the SevenWondersDuelEnv Dict observation into a flat feature vector.
+
+    Component   Input shape   Projection
+    ─────────────────────────────────────
+    pyramid     (23, 23)→529  → 256
+    player      (17,)         → 64
+    opponent    (17,)         → 64
+    tokens      (25,)         → 32
+    ─────────────────────────────────────
+    Concat                      416
+    Trunk       416           → features_dim (default 256)
+    """
+
+    def __init__(
+        self,
+        observation_space: gym.spaces.Dict,
+        features_dim: int = 256,
+    ) -> None:
+        super().__init__(observation_space, features_dim)
+
+        pyramid_shape = observation_space["pyramid"].shape   # (23, 23)
+        pyramid_flat = pyramid_shape[0] * pyramid_shape[1]  # 529
+        player_dim = observation_space["player"].shape[0]    # 17
+        opp_dim = observation_space["opponent"].shape[0]     # 17
+        token_dim = observation_space["tokens"].shape[0]     # 25
+
+        self.pyramid_net = nn.Sequential(nn.Linear(pyramid_flat, 256), nn.ReLU())
+        self.player_net  = nn.Sequential(nn.Linear(player_dim, 64),    nn.ReLU())
+        self.opp_net     = nn.Sequential(nn.Linear(opp_dim, 64),       nn.ReLU())
+        self.token_net   = nn.Sequential(nn.Linear(token_dim, 32),     nn.ReLU())
+
+        concat_dim = 256 + 64 + 64 + 32  # 416
+        self.trunk = nn.Sequential(
+            nn.Linear(concat_dim, features_dim),
+            nn.ReLU(),
+        )
+
+    def forward(self, observations: dict[str, torch.Tensor]) -> torch.Tensor:
+        pyramid = self.pyramid_net(observations["pyramid"].flatten(start_dim=1))
+        player  = self.player_net(observations["player"])
+        opp     = self.opp_net(observations["opponent"])
+        tokens  = self.token_net(observations["tokens"])
+
+        concat = torch.cat([pyramid, player, opp, tokens], dim=-1)
+        return self.trunk(concat)

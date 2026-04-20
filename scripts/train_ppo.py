@@ -37,7 +37,7 @@ logger = logging.getLogger("train_ppo")
 
 def _parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Train MaskablePPO on Wingspan.")
-    p.add_argument("--game", default="wingspan", choices=["wingspan"])
+    p.add_argument("--game", default="wingspan", choices=["wingspan", "seven_wonders_duel"])
     p.add_argument("--total-timesteps", type=int, default=1_000_000)
     p.add_argument("--n-envs", type=int, default=4,
                    help="Number of parallel environments (DummyVecEnv).")
@@ -141,16 +141,25 @@ def main() -> None:
     # ── Environments ─────────────────────────────────────────────────────────
     from stable_baselines3.common.env_util import make_vec_env
 
-    from src.envs.wingspan_env import WingspanEnv
-
     reward_mode = args.reward_mode
 
-    def _make_env() -> WingspanEnv:
-        return WingspanEnv(reward_mode=reward_mode)
+    if args.game == "seven_wonders_duel":
+        from src.envs.seven_wonders_duel_env import SevenWondersDuelEnv
+
+        def _make_env():  # type: ignore[return]
+            return SevenWondersDuelEnv(reward_mode=reward_mode)
+
+        eval_env = SevenWondersDuelEnv(reward_mode=reward_mode)
+    else:
+        from src.envs.wingspan_env import WingspanEnv
+
+        def _make_env():  # type: ignore[return]
+            return WingspanEnv(reward_mode=reward_mode)
+
+        eval_env = WingspanEnv(reward_mode=reward_mode)
 
     logger.info("Creating %d training envs…", args.n_envs)
     vec_env = make_vec_env(_make_env, n_envs=args.n_envs, seed=args.seed)
-    eval_env = WingspanEnv(reward_mode=reward_mode)
 
     # ── Model ────────────────────────────────────────────────────────────────
     from src.agents.ppo_agent import build_maskable_ppo, make_callbacks
@@ -161,6 +170,7 @@ def main() -> None:
         vec_env,
         seed=args.seed,
         tensorboard_log=tb_log,
+        game=args.game,
         learning_rate=args.learning_rate,
         n_steps=args.n_steps,
         batch_size=args.batch_size,
@@ -195,7 +205,7 @@ def main() -> None:
                 elapsed, args.total_timesteps / max(elapsed, 1))
 
     # ── Save final model ─────────────────────────────────────────────────────
-    final_path = ckpt_dir / "ppo_wingspan_final"
+    final_path = ckpt_dir / f"ppo_{args.game}_final"
     model.save(str(final_path))
     logger.info("Final model saved to %s.zip", final_path)
 
@@ -208,6 +218,7 @@ def main() -> None:
         n_episodes=args.n_eval_episodes * 5,
         seed=args.seed + 1,
         reward_mode=reward_mode,
+        game=args.game,
     )
 
     # ── Results ──────────────────────────────────────────────────────────────
@@ -265,7 +276,7 @@ def _plot_training_curves(
         ax2.grid(alpha=0.3)
         ax2.set_title("Average Score (PPO agent)")
 
-        fig.suptitle(f"Wingspan MaskablePPO — {exp_dir.name}")
+        fig.suptitle(f"MaskablePPO — {exp_dir.name}")
         fig.tight_layout()
         fig.savefig(exp_dir / "training_curves.png", dpi=120)
         plt.close(fig)

@@ -42,14 +42,16 @@ def build_maskable_ppo(
     env: Any,
     seed: int = 42,
     tensorboard_log: str | None = "./experiments/tensorboard",
+    game: str = "wingspan",
     **hyperparams: Any,
 ) -> Any:
     """Construct and return a MaskablePPO model with project defaults.
 
     Args:
-        env: Vectorised WingspanEnv (from make_vec_env).
+        env: Vectorised gym env (from make_vec_env).
         seed: Random seed for reproducibility.
         tensorboard_log: Directory for TensorBoard logs; None to disable.
+        game: Game name — selects the appropriate features extractor.
         **hyperparams: Override any default hyperparameter.
 
     Returns:
@@ -57,14 +59,16 @@ def build_maskable_ppo(
     """
     from sb3_contrib import MaskablePPO
 
-    from src.agents.encoders import WingspanFeaturesExtractor
+    from src.agents.encoders import SWDFeaturesExtractor, WingspanFeaturesExtractor
 
     hp = {**_DEFAULT_HYPERPARAMS, **hyperparams}
     features_dim: int = hp.pop("features_dim")
     net_arch: list[int] = hp.pop("net_arch")
 
+    extractor_cls = SWDFeaturesExtractor if game == "seven_wonders_duel" else WingspanFeaturesExtractor
+
     policy_kwargs = {
-        "features_extractor_class": WingspanFeaturesExtractor,
+        "features_extractor_class": extractor_cls,
         "features_extractor_kwargs": {"features_dim": features_dim},
         "net_arch": net_arch,
     }
@@ -214,10 +218,11 @@ def evaluate_ppo_win_rate(
     n_episodes: int = 100,
     seed: int = 0,
     reward_mode: str = "dense",
+    game: str = "wingspan",
 ) -> dict[str, Any]:
     """Evaluate a trained MaskablePPO against the random opponent.
 
-    Creates a fresh WingspanEnv (random opponent built-in) and runs
+    Creates a fresh env (random opponent built-in) for the given game and runs
     n_episodes games using the model's deterministic policy.
 
     Returns:
@@ -225,9 +230,12 @@ def evaluate_ppo_win_rate(
     """
     import random as pyrandom
 
-    from src.envs.wingspan_env import WingspanEnv  # type: ignore[attr-defined]
-
-    eval_env = WingspanEnv(reward_mode=reward_mode)
+    if game == "seven_wonders_duel":
+        from src.envs.seven_wonders_duel_env import SevenWondersDuelEnv
+        eval_env = SevenWondersDuelEnv(reward_mode=reward_mode)
+    else:
+        from src.envs.wingspan_env import WingspanEnv  # type: ignore[attr-defined]
+        eval_env = WingspanEnv(reward_mode=reward_mode)
     rng = pyrandom.Random(seed)
 
     wins = 0
