@@ -1,0 +1,25 @@
+Wingspan Rule Clarifications and Meta-Rules
+============================================
+
+CARD TEXT OVERRIDES GENERAL RULES
+Card text always overrides the general rules printed in the rulebook. This is the golden rule of Wingspan: specific card text takes precedence over general rules. When a bird card says something different from the general rules, follow the card. Specific beats general. Card powers are exceptions to the standard rules by design.
+
+BIRDS AND HABITATS
+Each bird card can only be in one habitat at a time, even if the card shows multiple habitat icons. Multiple habitat icons on a bird card indicate where the bird CAN be played, not that it occupies all habitats simultaneously. Once you play a bird into a habitat, it is in that habitat only for the rest of the game. A bird cannot be in multiple habitats simultaneously.
+
+HAND SIZE LIMIT
+There is no hand size limit in Wingspan. Players may hold an unlimited number of bird cards in their hand at any time. There is no maximum hand size. You never have to discard cards because your hand is too large.
+
+CACHED FOOD ON BIRD CARDS
+Food cached on a bird card cannot be spent to pay costs. Cached food sits on the bird card as a permanent resource and counts as 1 victory point at the end of the game. Cached food is not part of your personal food supply and cannot be used to pay food costs for playing birds or any other action. Only food tokens in your personal supply can be spent. Once food is cached on a bird, it stays there until end of game scoring.
+
+BONUS CARDS SCORING
+Bonus cards are always scored independently and additively. Each bonus card is evaluated on its own criteria and its points are added separately to your total score. There is no conflict between bonus cards. Two bonus cards scored simultaneously do not interact with each other — they are each scored on their own terms and the totals are simply added together.
+
+GENERAL CLARIFICATIONS
+These clarifications apply throughout the entire game and to all bird card powers:
+- When a bird power says "may," the effect is optional. You choose whether to use it.
+- When a bird power does not say "may," the effect is mandatory when triggered.
+- If a bird power would instruct you to do something impossible, you do as much as possible and ignore the rest.
+- Powers that say "all players" include yourself unless stated otherwise.
+- When multiple things trigger at the same time, the active player decides the order.

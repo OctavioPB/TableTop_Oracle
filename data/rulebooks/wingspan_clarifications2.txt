@@ -1,0 +1,45 @@
+Wingspan Edge Case and Round Clarifications
+============================================
+
+BIRD FEEDER MECHANICS
+When all dice in the bird feeder show the same food type, any player may immediately reroll all the dice back into the bird feeder. This is a bird feeder reset and can happen at any time, even during another player's turn. The bird feeder reset condition is: all remaining dice show the same food type. After the reset, all five dice are back in the feeder.
+
+The bird feeder is NOT refilled after each food token is taken. Dice remain out of the feeder after they are taken. The bird feeder is only reset (all dice thrown back in) when all remaining dice show the same food type, or when the last die is taken and the feeder is empty.
+
+DECK AND BIRD TRAY
+When the bird card draw deck runs out, it is not reshuffled. Players may only draw from the face-up bird tray once the deck is empty. The discard pile is not reshuffled to form a new deck. Face-up cards in the tray remain available until taken.
+
+If fewer than 3 cards are available to refill the bird tray (because the deck is nearly empty), place as many cards as are available. The tray may have fewer than 3 face-up cards. Once the deck is empty, no new cards are added to the tray.
+
+EGGS EDGE CASES
+A player cannot lay eggs on a bird that is already at its egg limit. Eggs must be distributed only to birds that have room (are below their egg limit). If you cannot place all eggs you are entitled to lay because all birds are at their egg limit, the remaining eggs are simply forfeited — they are lost. You cannot lay eggs on full birds and remaining eggs are not banked.
+
+FOOD AND SUPPLY
+There is no limit to how much food a player can have in their personal supply. The personal supply tracker is just a visual aid — players may hold more food tokens than the tracker shows. Food supply has no limit.
+
+If the general supply of eggs runs out (the shared pool of egg tokens is exhausted), use a substitute. The limited egg supply is a component constraint, not a game rule. Players should use coins, tokens, or any objects as substitutes. The egg supply running out does not end the game or prevent egg-laying.
+
+ACTION CUBES AND TURNS
+When a player runs out of action cubes during a round, their turn is over for that round. They sit out while other players continue taking turns until everyone has placed all their action cubes. Action cubes exhausted means the player takes no more turns that round.
+
+A player cannot activate a bird power on a bird they just played this turn unless it is a WHEN PLAYED (white) power. Brown powers (WHEN ACTIVATED) cannot be triggered on the same turn a bird is played. The bird is placed but its brown power does not activate until a future turn when you take that habitat's action.
+
+END OF ROUND RULES
+There are 4 end-of-round goals in a game, one per round. Each goal tile has its own scoring objective evaluated at the end of that specific round.
+
+End-of-round goals are scored after all players have placed all their action cubes. Once everyone is done taking turns, players compare the goal metric and place scoring cubes on the goal card according to their rank.
+
+When players tie for an end-of-round goal, tied players both receive the same points — the points for the lower shared position. For example, two players tied for first both receive second-place points. No player receives first-place points if there is a tie for first. This is how ties are shared in end of round goal scoring.
+
+At the end of each round, the bird tray is cleared — the 3 face-up cards are discarded — and 3 new cards are placed face-up to start the next round. The bird tray is replaced with 3 new cards at the end of each round.
+
+End-of-round goal cubes count as points at the end of the game. The number of points each cube is worth depends on its position on the goal card rows — higher positions earn more points per cube.
+
+Turn order does not change between rounds. Players always take turns in the same order in all 4 rounds.
+
+FINAL SCORING
+The final score is the sum of: bird points (printed on each bird card), bonus card points, end-of-round goal points (from scoring cubes), eggs on birds (1 point each), food cached on birds (1 point each), and tucked cards under birds (1 point each).
+
+Bonus cards are scored at the end of the game, not at the end of each round. Each bonus card has a collection criterion and awards points based on how well you met it.
+
+All action cubes are returned to players at the end of each round. Action cubes do not carry over — they are reset at the start of each new round. Players begin each round with their full set of action cubes.

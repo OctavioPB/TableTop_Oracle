@@ -12,8 +12,8 @@ from src.oracle.retriever import RetrievedChunk, RuleRetriever
 
 logger = logging.getLogger(__name__)
 
-_RETRIEVAL_K = 5          # chunks returned per query
-_VALIDATION_K = 4         # smaller set for action validation (state already provides context)
+_RETRIEVAL_K = 10         # chunks returned per query
+_VALIDATION_K = 6         # smaller set for action validation (state already provides context)
 _SYSTEM_PROMPT = (
     "You are a precise board game rules arbiter. "
     "Always base your answers strictly on the provided rulebook excerpts. "

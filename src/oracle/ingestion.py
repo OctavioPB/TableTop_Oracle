@@ -24,10 +24,10 @@ ChunkType = Literal["rule", "example", "exception", "card_power"]
 
 # 1 token ≈ 0.75 words — rough approximation, avoids adding tiktoken dependency
 _WORDS_PER_TOKEN = 0.75
-CHUNK_SIZE_TOKENS = 400
-CHUNK_OVERLAP_TOKENS = 80
-CHUNK_SIZE_WORDS: int = max(1, int(CHUNK_SIZE_TOKENS * _WORDS_PER_TOKEN))   # ~300
-CHUNK_OVERLAP_WORDS: int = max(1, int(CHUNK_OVERLAP_TOKENS * _WORDS_PER_TOKEN))  # ~60
+CHUNK_SIZE_TOKENS = 80
+CHUNK_OVERLAP_TOKENS = 20
+CHUNK_SIZE_WORDS: int = max(1, int(CHUNK_SIZE_TOKENS * _WORDS_PER_TOKEN))   # ~60
+CHUNK_OVERLAP_WORDS: int = max(1, int(CHUNK_OVERLAP_TOKENS * _WORDS_PER_TOKEN))  # ~15
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"
 
 # Heading patterns: ALL CAPS (≥2 words or ≥8 chars), or Title Case line alone
@@ -152,9 +152,77 @@ class RulebookIngester:
         logger.info("Ingested %d chunks into collection '%s'", len(chunks), collection_name)
         return len(chunks)
 
+    def ingest_extra(self, doc_path: str | Path, game: str) -> int:
+        """Append chunks from an extra document (PDF or TXT) to an existing collection.
+
+        Unlike ingest(), this method does NOT drop the collection first — it adds
+        new chunks alongside existing ones. Use this to supplement a rulebook with
+        FAQ or quickstart documents.
+
+        Args:
+            doc_path: Path to a .pdf or .txt file.
+            game: Game identifier (must match an existing collection).
+
+        Returns:
+            Number of new chunks added.
+        """
+        import chromadb
+
+        doc_path = Path(doc_path)
+        if not doc_path.exists():
+            raise FileNotFoundError(f"Document not found: {doc_path}")
+
+        if doc_path.suffix.lower() == ".txt":
+            pages = self._extract_text_from_txt(doc_path)
+        else:
+            pages = self._extract_text_by_page(doc_path)
+
+        chunks = self._chunk_text(pages, game)
+        # Prefix chunk IDs with source filename to avoid collisions
+        src = doc_path.stem
+        for c in chunks:
+            c.chunk_id = hashlib.sha256(
+                f"{src}:{c.chunk_id}".encode()
+            ).hexdigest()[:20]
+
+        client = chromadb.PersistentClient(path=str(self._chroma_dir))
+        collection_name = f"rules_{game}"
+        collection = client.get_or_create_collection(
+            name=collection_name,
+            metadata={"hnsw:space": "cosine"},
+        )
+
+        model = _get_embed_model()
+        texts = [c.text for c in chunks]
+        logger.info("Embedding %d extra chunks from %s …", len(chunks), doc_path.name)
+        embeddings = model.encode(texts, show_progress_bar=True, batch_size=64)
+
+        collection.add(
+            ids=[c.chunk_id for c in chunks],
+            embeddings=embeddings.tolist(),
+            documents=texts,
+            metadatas=[
+                {
+                    "page": c.page,
+                    "section": c.section,
+                    "game": c.game,
+                    "chunk_type": c.chunk_type,
+                    "source": doc_path.name,
+                }
+                for c in chunks
+            ],
+        )
+        logger.info("Added %d chunks from %s to collection '%s'", len(chunks), doc_path.name, collection_name)
+        return len(chunks)
+
     # ------------------------------------------------------------------
     # Internal helpers
     # ------------------------------------------------------------------
+
+    def _extract_text_from_txt(self, txt_path: Path) -> list[tuple[int, str]]:
+        """Return text from a plain-text file as a single pseudo-page."""
+        text = txt_path.read_text(encoding="utf-8", errors="replace")
+        return [(1, text)]
 
     def _extract_text_by_page(self, pdf_path: Path) -> list[tuple[int, str]]:
         """Return list of (1-indexed page_number, text) tuples."""

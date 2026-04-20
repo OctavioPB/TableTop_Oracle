@@ -1,0 +1,204 @@
+The Wingspan rulebooks are available for download. You can also jump to any applicable rule category using Wingspan’s Rulepop, search for specific bird powers on Wingsearch, or peruse a big spreadsheet of the birds on BoardGameGeek. There is also a full rules video by Watch It Played and a great resource in the Wingsplain site. Here’s a helpful article about Wingspan setup and rules.
+
+The European Expansion rulebook is here. Find the FAQ for that expansion on this page.
+
+The Oceania Expansion rulebook is here and the additional Automa rulebook is here. Find the FAQ for that expansion on this page.
+
+If you have rule questions, please post them in the comments on this page, create a thread on BoardGameGeek, or ask them in the Wingspan Facebook group.
+
+The free scoring app for Wingspan is available on iOS and Android.
+
+If you find any bugs in the digital version of Wingspan, please send them to support@monstercouch.com or the Wingspan Discord server, where they have a bug reporting channel (https://discord.gg/wingspan).
+
+Rule Questions: Game Mechanisms
+These “frequently asked questions” only contain answers to general questions. Be sure to also look at the Appendices for more detail on each bird and bonus card. A more advanced list of clarifications for each bird or power can be found here, compiled and maintained by Travis Willse.
+
+When I gain food from the birdfeeder, do I choose all of the dice at once, or one by one?
+
+Choose dice one at a time. This creates the potential for you to reroll in between dice selections.
+
+What about when drawing multiple cards? Can I draw a card from the deck, look at it, and then decide where to continue drawing birds?
+
+Yes, when drawing multiple cards, you can draw a card from the deck, look at it, and then decide to continue drawing from the deck or draw from the face-up cards.
+
+Can I activate pink (“Once Between Turns”) powers after my final turn?
+
+Yes, your pink power can activate once after your last turn.
+
+Can you discard birds from your player mat?
+
+No, once you play a bird, it’s permanent.
+
+Can I choose to lay fewer eggs, gain fewer food, or draw fewer eggs?
+
+Yes, you can always decline a benefit (though you can never decline a cost). This applies to the basic actions as well as bird powers. But remember, activating a particular bird power is optional, so you can avoid a cost associated with a bird power by skipping that power entirely.
+
+When do we choose the first player? Before or after players choose cards and food?
+
+The rules say the first player is chosen (randomly) after all players have chosen which bird cards, bonus card, and food to keep. But in more competitive environments (like digital adaptations or tournaments), it is an official variant to have the turn order determined before everyone chooses which cards and food to keep.
+
+Official Variants
+First-Player Selection
+
+In more competitive environments (like digital adaptations or tournaments), it is an official variant to have the turn order determined before everyone chooses which cards and food to keep.
+
+Region vs Region Asymmetric Variant
+
+In setup, each player selects 1 region (e.g., a Fan-Designed Promo Pack or an expansion) and gains a private deck of cards for that region; all remaining cards are shuffled to form the central deck and populate the bird tray. Each player draws 5 from their private deck as their opening hand (following the standard rule of also gaining 5 resources, then discarding down to 5 total things).
+
+During the game, whenever you can gain a bird card, you can gain it from either the bird tray or from your private deck (not the shared deck). Your private deck is used for any power with the potential to gain a card to hand as the result of a “draw from deck” ability; otherwise (for tucking, hunting, etc), use the central deck. Keep a private discard pile for your region that can be shuffled to reform your private deck if necessary. While most bonus cards are roughly balanced for each region and promo pack, some may offer wider probability gaps.
+
+Rule Questions: Bird Powers and Bonus Cards
+What are the birds with the grey triangles in the corners?
+
+These birds are part of the Swift-Start Pack which is included in all current printings of Wingspan. This Swift-Start Pack helps new players learn how to play the game with the 10 bird cards marked with grey corners and 4 player guides. The birds can be shuffled into the deck to be used as regular cards and can quickly be recognized and pulled out of the deck to use with the player guides when teaching new players.
+
+When a bird says that I can “repeat” another bird’s ability in the same habitat, how does that work?
+
+You can choose any other “when activated” bird in that habitat and perform its power. The bird can be to the left or to the right of the “repeat” bird. The “repeat” bird does not copy the power for itself, but allows another bird to activate twice this turn. So if Bird A says, “Lay 1 egg on this bird,” and I activate a bird (Bird B) that repeats Bird A’s ability, I lay 1 egg on Bird A.
+
+When activating “migrating” birds that can move from one habitat to another, does the action token move with them? Can they move even if they’re the only bird in the original habitat?
+
+The action token stays in the original row, as that is the action you chose for this turn. And yes, they can move if they’re the only bird in the row. These birds can migrate as long as there is no other card to their right.
+
+Can I reroll the dice in the birdfeeder if gaining food from a bird’s power? What about when there are qualifying terms such as “if available” or “if there is one?”
+
+Yes. Regular reroll rules apply whenever you have the opportunity to gain food from the birdfeeder.
+
+Rule Questions: Automa
+Automa: Who goes first each round, you or the Automa?
+
+For each of the 4 rounds, you always go first and the Automa always takes the last turn.
+
+General Questions
+What will future expansions for Wingspan cover?
+
+As of now (February 2026), Wingspan and its 4 expansions have covered birds in North America, Europe, Oceania, Asia, and Americas. The remaining 2 expansions–in no particular order–will feature the Arctics and Africa. We’re also experimenting with promo packs showcasing birds we missed from previously covered regions or extinct birds. Feel free to share any birds you’d like to see in Wingspan on this form!
+
+How do I assemble the birdfeeder dice tower? The top doesn’t seem to fit.
+
+These videos should help:
+
+
+
+
+
+Is my copy of Wingspan a counterfeit?
+
+Hopefully not, but it’s possible! All official copies of Wingspan have the Stonemaier Games logo at the upper right corner of the box; if it isn’t there, it’s a counterfeit game. Also be aware of “too good to be true” pricing from vendors; while you may find Wingspan at a discount from it $65 MSRP, if you see it sold for $30 or less, you’re likely looking at an illegal, unethical counterfeit.
+
+
+
+What are the 4 plastic containers for? [update: More recent printings of Wingspan have eco-friendly trays instead of plastic containers.]
+
+Two of the containers are for the food tokens; the other two are for eggs (see the diagram on the side of the box bottom). When playing Wingspan, you can use both the tops and bottoms of each container, creating 8 separate piles of tokens so players can reach them easily.
+
+
+
+We offer more plastic containers for order on our webstore. As shown on the side of the box (the box bottom, not the top), 2 of the containers are for food and two are for eggs. That’s just for storage. When you take the tops off of the containers, you have a total of 8 trays in which you can sort components during the game.
+
+These containers are being phased out of the game and replaced with pulp cardboard trays (for eco-friendliness).
+
+Are there any promo packs?
+
+There are so many amazing birds in the world, and our hope is to include as many as possible as we cover 1 continent per expansion (4 more to go). However, along the way we may consider making some small promo packs of birds and other winged creatures. If, how, and when we make these is entirely up to Elizabeth, but you’re welcome to share your preferences on this form.
+
+What are the card sizes and quantities?
+
+There are 212 cards in the game, each at the 57x87mm size.
+
+Does the insert fit sleeved cards? Does it have room for expansions?
+
+Yes, the insert fits sleeved cards (that’s a standard feature for all Game Trayz inserts). The one exception may be if you buy really thick, premium sleeves, as the height of all sleeved cards may be too tall. The tray will be full of sleeved bird cards, so expansion cards will need to be kept in plastic bags (they’ll still fit in the box).
+
+Is it language independent?
+
+No, quite the opposite: Wingspan is heavily language dependent.
+
+Does Wingspan only include birds from North America?
+
+Most of the birds found in the core game are predominantly found in North America. However, each expansion will feature a different region: We’re hoping to explore Europe, Africa, Asia, South America, and Australia/NZ.
+
+Why isn’t there any player interaction in Wingspan?
+
+While Wingspan’s focus is indeed on building a satisfying engine, there are quite a few forms of player interaction even in just the base game: The dice you choose from the dice tower (and when you choose to reroll them), the bird cards you choose (if you take a face up card, you’re taking it away from your opponents), the end-of-round goals (when playing on the green side of the goal mat), and quite a few bird cards that result in other players gaining food, drawing cards, etc.
+
+An easy test for player interaction is to ask yourself, “Could all actions be taken simultaneously, scaled to any player count?” If the answer is no, there’s at least some player interaction in the game. Stonemaier Games does have one actual multi-player solitaire game (Rolling Realms), but it isn’t Wingspan.
+
+Now, if you’re equating “player interaction” with “direct conflict”, that simply isn’t what Wingspan is about. It is, after all, a game about managing a bird sanctuary.
+
+Will the game be released in other languages?
+
+Yes! The game has been printed in many different languages, including but not limited to, these publishers: Feuerland (German), Matagot (French), Maldito (Spanish), 999 Games (Dutch), and Delta Vision (Hungarian).
+
+Are there any unofficial Wingspan accessories or digital products?
+
+Automa helper by John Thomas Lascha
+Errata and Early Printings Info
+A vast majority of these issues only exist in very old copies of Wingspan (the first two printings from 2019). If you purchase a new copy today, none of these are present.
+
+How do I know which printing I have?
+
+There’s not much reason to know the exact printing unless you have a very old copy of Wingspan. So this is not an exhaustive list, but look at the number to the left of the panda icon near the bar code on the bottom of your box (English printings only). If you have an English first or second printing, there is an update pack available if you fill out our replacement parts form.
+
+This is what the first printing code is 1712-1764 and looks like this:
+
+
+
+The second printing code is 1812-2078.
+The third printing code is 19003.
+The fourth printing code is 19014.
+The fifth printing code is 19019.
+
+You know you have the 7th printing or later (which include the swift-start pack in the box) if you see this at the upper right of the box bottom:
+
+
+
+Is the percentage on the Omnivore Expert bonus card correct?
+
+No, it should be 16%, not 10%.
+
+Does “prairie” count as a term for the Cartographer bonus card?
+
+Yes, it counts.
+
+What does the Photographer score for 4-5 birds with colors in their names?
+
+This is a typo. Instead of 2-3, it should say 4-5.
+
+
+
+Should the Spotted Sandpiper be worth 5 points, not 4?
+
+Yes, 5 is correct.
+
+
+
+Is there a list of all bonus cards in the base game?
+
+Omnivore Expert
+Viticulturalist
+Fishery Manager
+Rodentologist
+Bird Feeder
+Food Web Expert
+Visionary Leader
+Ecologist
+Historian
+Forester
+Prairie Manager
+Wetland Scientist
+Oologist
+Breeding Manager
+Wildlife Gardener
+Nest Box Builder
+Enclosure Builder
+Platform Builder
+Falconer
+Bird Counter
+Anatomist
+Photographer
+Cartographer
+Large Bird Specialist
+Passerine Specialist
+Backyard Birder

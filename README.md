@@ -10,6 +10,37 @@ TabletopOracle is a research system that combines Retrieval-Augmented Generation
 
 ---
 
+## Quickstart
+
+```bash
+# 1. Clone and install
+git clone https://github.com/your-org/TableTop_Oracle.git
+cd TableTop_Oracle
+pip install -e .
+
+# 2. Set your API key
+echo "ANTHROPIC_API_KEY=sk-ant-..." > .env
+
+# 3. Place your Wingspan rulebook PDF at data/rulebooks/wingspan.pdf
+#    then ingest it
+python scripts/ingest_rulebook.py --game wingspan --pdf data/rulebooks/wingspan.pdf
+
+# 4. Verify everything works
+pytest tests/ -v --tb=short
+
+# 5. Train an agent (smoke test — 10k steps, ~1 min)
+python scripts/train_ppo.py --total-timesteps 10000 --n-envs 2 --seed 42 --no-tensorboard
+
+# 6. Run the full ablation study (~4 hours)
+python scripts/ablation_study.py \
+    --total-timesteps 1000000 --seeds 42 123 7 \
+    --n-envs 4 --experiment-name ablation_s6
+```
+
+That's it. Results land in `experiments/exp_NNN_ablation_s6/results.json`.
+
+---
+
 ## Why this matters
 
 Teaching an AI to play board games is a longstanding benchmark for general reasoning. Prior work (AlphaGo, MuZero, OpenAI Five) either relies on perfect simulators hand-coded by domain experts, or on games with simple, fixed rule sets. Modern hobby board games present a harder challenge:
@@ -392,6 +423,43 @@ See [src/games/seven_wonders_duel/](src/games/seven_wonders_duel/) for a complet
 | Testing | pytest + hypothesis | ≥ 8.0.0 / ≥ 6.0.0 |
 
 **Default Claude model:** `claude-sonnet-4-6`
+
+---
+
+## FAQ
+
+**Do I need an Anthropic API key to train agents?**
+No. The API key is only required for the Rule Oracle (`ingest_rulebook.py`, `eval_rule_oracle.py`). Training (`train_ppo.py`, `ablation_study.py`) runs entirely in Python with no API calls. You can train without a key.
+
+**How long does training take?**
+On a modern CPU with 4 parallel envs, 1M steps takes roughly 4–5 hours for Wingspan and 3–4 hours for 7 Wonders Duel. A GPU does not significantly help here because the bottleneck is environment simulation, not neural network forward passes.
+
+**Why MaskablePPO and not standard PPO?**
+Without action masking, the agent wastes gradient steps learning to avoid illegal moves rather than learning strategy. In a game like Wingspan with ~200 possible actions per step but only 4–6 legal at any given state, standard PPO would spend the majority of training discovering which actions are illegal. This is a design flaw, not a tuning problem.
+
+**Why is the Rule Oracle accuracy only 52%?**
+The golden Q&A dataset includes edge cases and exception rules that are often implicit in the rulebook (e.g., "card text overrides general rules" is a universal board game convention rarely written explicitly). The 90% accuracy on basic turn questions confirms the retrieval pipeline is working. Adding the official Wingspan FAQ document to ChromaDB would close most of the remaining gap. This limitation does not affect training — the Python rule engine runs independently of the Oracle.
+
+**Why BC+PPO helps more in 7WD than in Wingspan?**
+In Wingspan, both conditions converge at ~200k steps — BC reduces variance but not the performance ceiling. In 7 Wonders Duel (larger action space, 3 win conditions), BC+PPO reaches 0.80 WR vs 0.67 for PPO baseline at 1M steps. The GreedyAgent prior eliminates unproductive exploration that PPO from scratch spends significant budget on in more complex games.
+
+**Can I add a new game?**
+Yes. See [Adding a new game](#adding-a-new-game). The 7 Wonders Duel implementation required ~18% new code — everything else (agent, training, evaluation, tournament) was reused unchanged.
+
+**The training crashed and left a partial experiment directory. How do I re-run?**
+Delete the partial directory and re-run the script. Each script creates the experiment directory at startup with `exist_ok=False`, so if the directory already exists it will fail. Delete it manually:
+```bash
+rm -rf experiments/ppo_7wd_dense_seed42
+```
+
+**How do I reproduce the paper results exactly?**
+```bash
+python scripts/ablation_study.py \
+    --total-timesteps 1000000 --seeds 42 123 7 \
+    --n-envs 4 --n-demo-games 200 --bc-epochs 50 \
+    --reward-mode dense --experiment-name ablation_s6
+```
+All seeds are fixed at every level. Results are deterministic given the same hardware and library versions (see `pyproject.toml` for pinned versions).
 
 ---
 
