@@ -437,6 +437,7 @@ Sprint 4 — RL Agent            [x] Completado (2026-04-18)
 Sprint 5 — Imitation Learning  [x] Completado (2026-04-18)
 Sprint 6 — Evaluación          [x] Completado (2026-04-19)
 Sprint 7 — Generalización      [x] Completado (2026-04-19)
+Post-S7 — Scripts multi-juego  [x] Completado (2026-04-20)
 ```
 
 Actualiza esta sección al final de cada sesión de trabajo.
@@ -612,6 +613,53 @@ definición en `actions.py` — no asumir el nombre por el contexto semántico.
   ven porque cada test valida su módulo de forma aislada. Buscar con grep patrones
   como `entry["clave"]`, `WinRateCallback(`, `action.atributo` y verificar que
   ambos lados del contrato usan exactamente los mismos nombres.
+
+### Post-Sprint 7 — Scripts de training y evaluación multi-juego
+
+**`WingspanEnv(seed=seed)` en `ablation_study.py`**
+`_run_condition_baseline` y `_run_condition_bc_ppo` pasaban `seed=seed` al
+constructor de `WingspanEnv`. El constructor no acepta `seed` (contrato gymnasium).
+El mismo bug que en S7 con `TTSLogParser` — reapareció en un script diferente.
+Regla: buscar con grep `WingspanEnv(` y `SevenWondersDuelEnv(` antes de cada
+sesión de trabajo para detectar instanciaciones con `seed=` en el constructor.
+
+**`train_ppo.py` hardcodeaba `--game wingspan` en el argparser**
+Al generalizar a 7WD, el `choices=["wingspan"]` del argparser bloqueaba el nuevo
+juego. El `build_maskable_ppo` también asumía `WingspanFeaturesExtractor`
+incondicionalmente, causando `KeyError: 'board'` con el observation space de 7WD.
+Regla: cuando se añade un juego nuevo, auditar todos los scripts que instancian
+envs o extractores con nombre de juego hardcodeado.
+
+**`SWDFeaturesExtractor` necesario para `SevenWondersDuelEnv`**
+`WingspanFeaturesExtractor` accede a claves `"board"`, `"opponent_board"`, etc.
+`SevenWondersDuelEnv` expone `"pyramid"`, `"player"`, `"opponent"`, `"tokens"`.
+Usar el extractor incorrecto causa `KeyError` en el primer forward pass de la policy.
+Regla: cada env con observation space diferente requiere su propio `FeaturesExtractor`.
+El extractor correcto se selecciona en `build_maskable_ppo(game=...)`.
+
+**`SevenWondersDuelEnv.step()` no incluía scores en `info`**
+`WinRateCallback` y `evaluate_ppo_win_rate` leen `info["player_0_score"]` y
+`info["player_1_score"]` para determinar el ganador. `SevenWondersDuelEnv`
+solo ponía `info["winner"]` — sin scores, ambos valores eran 0, win_rate = 0.0
+durante todo el run de 1M steps. El agente sí aprendía, pero la métrica no lo veía.
+Regla: al implementar un nuevo env, verificar que `info` al final del episodio
+incluye exactamente las claves que `WinRateCallback` espera: `player_0_score`,
+`player_1_score`, `winner`.
+
+**`WinRateCallback` determinaba ganador solo por `s0 > s1`**
+En 7WD existen victorias militares y científicas donde el score VP puede ser igual
+entre jugadores. Si la victoria no es por puntos, `s0 > s1` es False aunque P0 ganó.
+Fijado a: `winner == 0 or (winner is None and s0 > s1)`.
+Regla: en juegos con múltiples condiciones de victoria, siempre priorizar
+`info["winner"]` sobre comparación de scores.
+
+**Resultado de ablation: BC reduce varianza, no tiempo de convergencia**
+La hipótesis original era que BC pre-training acelera la convergencia (sample efficiency).
+Los datos reales muestran que ambas condiciones (baseline y BC+PPO) alcanzan WR ≥ 0.55
+en 200k steps. El beneficio medible de BC es reducción de varianza entre seeds:
+std 0.016 vs 0.033. El claim del paper debe reflejar esto — estabilidad, no velocidad.
+Regla: no asumir el resultado de una ablación antes de tenerlo. Los datos pueden
+contradecir la hipótesis, y eso también es una contribución válida.
 
 ---
 

@@ -236,8 +236,9 @@ class SyntheticDemoGenerator:
             or "shaped").
     """
 
-    def __init__(self, reward_mode: str = "dense") -> None:
+    def __init__(self, reward_mode: str = "dense", game: str = "wingspan") -> None:
         self._reward_mode = reward_mode
+        self._game = game
 
     def generate(
         self,
@@ -257,9 +258,13 @@ class SyntheticDemoGenerator:
             Populated DemonstrationBuffer.
         """
         from src.agents.baselines import GreedyAgent
-        from src.envs.wingspan_env import WingspanEnv
 
-        env = WingspanEnv(reward_mode=self._reward_mode)
+        if self._game == "seven_wonders_duel":
+            from src.envs.seven_wonders_duel_env import SevenWondersDuelEnv
+            env = SevenWondersDuelEnv(reward_mode=self._reward_mode)
+        else:
+            from src.envs.wingspan_env import WingspanEnv
+            env = WingspanEnv(reward_mode=self._reward_mode)
         greedy = GreedyAgent()
         rng = random.Random(seed)
         buffer = DemonstrationBuffer()
@@ -300,9 +305,13 @@ class SyntheticDemoGenerator:
                 ))
                 obs = next_obs
 
-            s0 = info.get("player_0_score", 0)
-            s1 = info.get("player_1_score", 0)
-            winner: int | None = 0 if s0 > s1 else (1 if s1 > s0 else None)
+            winner_from_info = info.get("winner")
+            if winner_from_info is not None:
+                winner: int | None = winner_from_info
+            else:
+                s0 = info.get("player_0_score", 0)
+                s1 = info.get("player_1_score", 0)
+                winner = 0 if s0 > s1 else (1 if s1 > s0 else None)
             buffer.add_game(game_transitions, winner=winner)
 
             if (game_idx + 1) % max(1, n_games // 5) == 0:

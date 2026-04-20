@@ -145,7 +145,8 @@ class WinRateCallback(BaseCallback):
             s1 = info.get("player_1_score", 0)
             scores_p0.append(s0)
             scores_p1.append(s1)
-            if s0 > s1:
+            winner = info.get("winner")
+            if winner == 0 or (winner is None and s0 > s1):
                 wins += 1
 
         win_rate = wins / self._n_eval_episodes
@@ -257,7 +258,8 @@ def evaluate_ppo_win_rate(
         s1 = info.get("player_1_score", 0)
         scores_p0.append(s0)
         scores_p1.append(s1)
-        if s0 > s1:
+        winner = info.get("winner")
+        if winner == 0 or (winner is None and s0 > s1):
             wins += 1
 
     return {

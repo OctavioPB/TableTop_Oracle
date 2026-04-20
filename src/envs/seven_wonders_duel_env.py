@@ -180,7 +180,13 @@ class SevenWondersDuelEnv(gym.Env):
             self._state = self._state.model_copy(update={"player_id": 0})
 
         obs = self._get_obs()
-        info: dict[str, Any] = {"winner": winner}
+        score_p0 = self._engine._compute_final_score(self._state, 0) if done else 0
+        score_p1 = self._engine._compute_final_score(self._state, 1) if done else 0
+        info: dict[str, Any] = {
+            "winner": winner,
+            "player_0_score": score_p0,
+            "player_1_score": score_p1,
+        }
         return obs, float(reward), done, False, info
 
     def action_masks(self) -> np.ndarray:
