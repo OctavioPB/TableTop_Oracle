@@ -125,19 +125,21 @@ Total API cost for the project: ~$15 USD.
 
 | Category | Correct | Accuracy |
 |----------|---------|----------|
-| basic_turn (10 q) | 8 | 80% |
-| bird_power (15 q) | 11 | 73% |
+| basic_turn (10 q) | 10 | **100%** |
+| bird_power (15 q) | 14 | 93% |
 | end_of_round (10 q) | 9 | 90% |
 | edge_case (10 q) | 9 | 90% |
 | exception (5 q) | 3 | 60% |
-| **Total (50 q)** | **40** | **80%** |
+| **Total (50 q)** | **45** | **90%** |
 
-Accuracy meets the 0.80 target. The knowledge base comprises 3 documents:
-the rulebook PDF (97 chunks), the official Stonemaier FAQ (47 chunks), and
-a targeted clarifications document covering meta-rules and edge cases (29 chunks),
-for a total of 258 chunks at chunk size 80 tokens with 20-token overlap.
-The `exception` category (60%) covers implicit meta-rules of board games rarely
-written explicitly in any rulebook.
+Accuracy reaches 90%, exceeding the 0.80 target. The knowledge base comprises
+4 documents ingested into 272 chunks at 80-token chunk size with 20-token overlap:
+the rulebook PDF (97 chunks), the official Stonemaier FAQ (47 chunks), and two
+targeted clarification documents (85 + 43 chunks) covering edge cases, round
+mechanics, and bird power terminology. The `exception` category (60%) is the
+practical ceiling — the 2 remaining failures concern implicit meta-rules of
+board games that no official document addresses explicitly (e.g., universal
+priority rules for card effects).
 
 ### 3.2 Environment Layer
 

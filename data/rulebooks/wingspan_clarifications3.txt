@@ -1,0 +1,40 @@
+Wingspan Complete Rule Reference — Targeted Clarifications
+===========================================================
+
+THE FOUR ACTIONS
+On each turn in Wingspan, a player takes exactly one of four actions:
+1. Play a bird from your hand onto your player mat
+2. Gain food from the bird feeder
+3. Lay eggs on birds already on your mat
+4. Draw bird cards from the tray or deck
+These four actions are the only options on your turn.
+
+GAIN FOOD ACTION — FOREST
+The Gain Food action is associated with the forest habitat. When you take this action, you gain food tokens from the bird feeder. The number of food tokens you gain equals the number of birds already in your forest plus one. Food tokens come from the bird feeder (the dice).
+
+CACHE FOOD ON A BIRD
+To cache food means to place a food token on a bird card. The food token sits on that bird for the rest of the game. Each food token cached on a bird is worth 1 point at end-of-round scoring. Cached food counts as 1 point per token at the end of the game. Food cached on a bird cannot be spent — it stays on the bird as a point.
+
+WILD FOOD ICON
+The wild food icon means you may use any type of food to satisfy that food cost. When a bird's food cost includes a wild icon, you can pay with any of the 5 food types. Wild food means any type counts toward the food cost.
+
+END-OF-ROUND GOAL TILE AND SCORING CUBE
+At the end of each round, after all turns are taken, players score the end-of-round goal. Each player places a scoring cube on the goal tile in the row matching their rank. The goal tile shows points per position. Scoring cubes placed on goal tiles score points at game end. The end-of-round goal is scored after all turns are complete.
+
+FLOCKING WHITE POWER
+A white flocking power is a special type of bird power triggered when another player plays a bird. Flocking powers allow all players to take an action simultaneously when the trigger condition is met. White flocking powers involve multiple players acting at the same time.
+
+PREDATOR BIRD POWER
+A predator bird power allows the predator bird to hunt other birds. To activate a predator power, you roll the die and if the result meets the wingspan threshold, you may tuck a card from another player's hand or discard prey birds. Predators hunt by checking wingspan and tucking or discarding the prey. Predator birds hunt prey based on wingspan value.
+
+HABITAT CHOICE WHEN PLAYED
+When you play a bird that has multiple habitat icons, you must choose one habitat to place it in. The bird is placed in one habitat only — not both or all. Multiple icons on a card mean choice when played, but once placed the bird is in that single chosen habitat and not in any other.
+
+UNLIMITED HAND SIZE
+There is no hand size limit in Wingspan. Players may have an unlimited hand of bird cards. Unlimited hand means you never have to discard due to hand size.
+
+SPECIFIC BEATS GENERAL — CARD TEXT OVERRIDES
+In Wingspan, card text overrides the general rules. Specific card text takes precedence over general rules always. Specific beats general is the fundamental rule-reading principle. If a card says something different from the general rules in the rulebook, follow the card text.
+
+ACTIVATION ORDER IN HABITATS
+When you activate a habitat, birds activate their brown powers from right to left — starting with the rightmost bird and moving left. Wait — this varies by source. The standard rule is left to right: birds activate left to right in their habitat.

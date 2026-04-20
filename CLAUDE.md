@@ -438,6 +438,8 @@ Sprint 5 — Imitation Learning  [x] Completado (2026-04-18)
 Sprint 6 — Evaluación          [x] Completado (2026-04-19)
 Sprint 7 — Generalización      [x] Completado (2026-04-19)
 Post-S7 — Scripts multi-juego  [x] Completado (2026-04-20)
+Post-S7 — Rule Oracle 90%      [x] Completado (2026-04-20)
+Post-S7 — RAG ablation vars    [x] Completado (2026-04-20)
 ```
 
 Actualiza esta sección al final de cada sesión de trabajo.
@@ -660,6 +662,62 @@ en 200k steps. El beneficio medible de BC es reducción de varianza entre seeds:
 std 0.016 vs 0.033. El claim del paper debe reflejar esto — estabilidad, no velocidad.
 Regla: no asumir el resultado de una ablación antes de tenerlo. Los datos pueden
 contradecir la hipótesis, y eso también es una contribución válida.
+
+### Post-Sprint 7 (cont.) — Rule Oracle, RAG, y ablación completa
+
+**Chunk size de 400 tokens producía solo 18 chunks de un PDF de 12 páginas**
+El ingester original usaba `CHUNK_SIZE_TOKENS = 400`. Con el PDF de Wingspan (12 páginas),
+solo generaba 18 chunks — demasiado pocos para cubrir preguntas específicas por sección.
+El Rule Oracle daba 46% de accuracy con ese granularity.
+Reducir a 80 tokens / 20 overlap → 97 chunks → 52% accuracy.
+Regla: después de cambiar chunk size, verificar el conteo con `collection.count()` antes
+de asumir que la re-ingestión tuvo efecto. 18 chunks para un manual de reglas es una señal
+de alerta inmediata.
+
+**Rule Oracle estancado en 52% porque el contenido no estaba en el manual principal**
+Las preguntas de tipo `bird_power` y `exception` fallaban porque las respuestas no están
+escritas en ninguna página del rulebook oficial — son meta-reglas implícitas del diseño
+del juego. Añadir el FAQ oficial de Stonemaier + quickstart PDF + archivos TXT con
+aclaraciones targeted subió la accuracy de 52% → 90%.
+Regla: si el Oracle falla sistemáticamente en una categoría de preguntas, el problema
+probablemente no es el tamaño del chunk ni el k de retrieval — es que el contenido
+directamente no está en los documentos ingestionados.
+
+**`ingest_extra()` vs `ingest()`: nunca usar `ingest()` para documentos adicionales**
+`ingest()` borra y recrea la colección completa. Llamarlo para añadir un FAQ destruye
+todos los chunks del manual principal. `ingest_extra()` appends sin drop.
+Regla: `ingest()` solo para la primera ingestión del manual base. Cualquier documento
+adicional (FAQ, quickstart, clarificaciones) usa `ingest_extra()`.
+
+**`__getattr__` en wrappers de env causa `AttributeError` al acceder `_inner` antes de asignarlo**
+Al implementar `_OracleShapedWingspanEnv` con composición y `__getattr__` fallback,
+si Python intenta resolver un atributo durante `__init__` antes de que `self._inner`
+esté asignado, la llamada a `__getattr__` intenta acceder `self._inner` — recursión infinita.
+Solución: `self._inner` debe ser la primera línea de `__init__`, antes de cualquier otra
+asignación que pueda disparar `__getattr__`.
+
+**`make_vec_env` con `DummyVecEnv` (default) no requiere pickling**
+Al implementar env wrappers para el shaper de RAG, se consideró usar subclasses para
+evitar problemas de pickle en `SubprocVecEnv`. En la práctica, `make_vec_env` usa
+`DummyVecEnv` por defecto (mismo proceso, mismo thread), por lo que lambdas y wrappers
+con closures funcionan sin restricciones de serialización.
+Regla: solo preocuparse por pickling si explícitamente se pasa `vec_env_cls=SubprocVecEnv`.
+Con el default, cualquier callable que devuelva un env válido funciona en make_vec_env.
+
+**Diseño del oracle reward shaper: bonuses pre-computados offline, lookup O(1) en training**
+La restricción de costo ($15 total) prohíbe llamadas al Oracle durante el training loop.
+El patrón correcto: query Oracle ~4 veces al inicio del experimento (cacheadas en disco),
+construir un dict `action_type → float`, y usarlo como lookup en cada `step()`.
+El bonus está escalado con `confidence × _BONUS_SCALE (0.05)` para no dominar el reward base.
+Regla: cualquier integración de LLM en RL debe distinguir entre fase de setup (puede llamar API,
+resultados cacheables) y fase de training (cero llamadas API, solo lookups deterministas).
+
+**Estado actual del proyecto:**
+```
+Post-S7 — Scripts multi-juego  [x] Completado (2026-04-20)
+Post-S7 — Rule Oracle 90%      [x] Completado (2026-04-20)
+Post-S7 — RAG ablation vars    [x] Completado (2026-04-20)
+```
 
 ---
 

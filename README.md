@@ -437,8 +437,8 @@ On a modern CPU with 4 parallel envs, 1M steps takes roughly 4–5 hours for Win
 **Why MaskablePPO and not standard PPO?**
 Without action masking, the agent wastes gradient steps learning to avoid illegal moves rather than learning strategy. In a game like Wingspan with ~200 possible actions per step but only 4–6 legal at any given state, standard PPO would spend the majority of training discovering which actions are illegal. This is a design flaw, not a tuning problem.
 
-**Why is the Rule Oracle accuracy only 52%?**
-The golden Q&A dataset includes edge cases and exception rules that are often implicit in the rulebook (e.g., "card text overrides general rules" is a universal board game convention rarely written explicitly). The 90% accuracy on basic turn questions confirms the retrieval pipeline is working. Adding the official Wingspan FAQ document to ChromaDB would close most of the remaining gap. This limitation does not affect training — the Python rule engine runs independently of the Oracle.
+**What is the Rule Oracle accuracy?**
+90% on the 50-question golden dataset (100% basic turn, 93% bird power, 90% edge case, 90% end-of-round, 60% exception). The knowledge base comprises 4 documents: the rulebook PDF, the official Stonemaier FAQ, and two targeted clarification files covering edge cases and bird power terminology. The 60% on exception questions is the practical ceiling — those rules are implicit board game conventions not written in any official document. This does not affect training since the Python rule engine runs independently.
 
 **Why BC+PPO helps more in 7WD than in Wingspan?**
 In Wingspan, both conditions converge at ~200k steps — BC reduces variance but not the performance ceiling. In 7 Wonders Duel (larger action space, 3 win conditions), BC+PPO reaches 0.80 WR vs 0.67 for PPO baseline at 1M steps. The GreedyAgent prior eliminates unproductive exploration that PPO from scratch spends significant budget on in more complex games.

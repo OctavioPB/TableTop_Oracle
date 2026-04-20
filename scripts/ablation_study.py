@@ -103,6 +103,79 @@ class _PPOAgentWrapper:
 
 
 # ---------------------------------------------------------------------------
+# Oracle-shaped environment
+# ---------------------------------------------------------------------------
+
+
+def _make_oracle() -> tuple[object, object]:
+    """Construct a RuleOracle backed by the persistent ChromaDB."""
+    import os
+    from pathlib import Path as _Path
+    from src.oracle.claude_client import ClaudeClient
+    from src.oracle.retriever import RuleRetriever
+    from src.oracle.rule_oracle import RuleOracle
+
+    chroma_dir = _Path(os.environ.get("CHROMA_PERSIST_DIR", "data/chroma_db"))
+    client = ClaudeClient()
+    retriever = RuleRetriever(chroma_persist_dir=chroma_dir)
+    oracle = RuleOracle(client=client, retriever=retriever)
+    return oracle, retriever
+
+
+def _load_oracle_bonuses(game: str, cache_dir: Path) -> dict[str, float]:
+    """Pre-compute (or load cached) oracle action bonuses."""
+    from src.oracle.reward_shaper import build_oracle_bonuses
+
+    cache_path = cache_dir / f"oracle_bonuses_{game}.json"
+    oracle, _ = _make_oracle()
+    bonuses = build_oracle_bonuses(oracle, game=game, cache_path=cache_path)
+    logger.info("Oracle bonuses loaded: %s", bonuses)
+    return bonuses
+
+
+class _OracleShapedWingspanEnv:
+    """Thin wrapper around WingspanEnv that adds per-step oracle action bonuses.
+
+    Uses composition (not subclassing) to avoid MRO conflicts. DummyVecEnv
+    (make_vec_env default) runs in-process so no pickling is required.
+    """
+
+    def __init__(self, oracle_bonuses: dict[str, float], reward_mode: str = "dense") -> None:
+        from src.envs.wingspan_env import WingspanEnv
+
+        self._inner = WingspanEnv(reward_mode=reward_mode)
+        self._bonuses = oracle_bonuses
+        self.observation_space = self._inner.observation_space
+        self.action_space = self._inner.action_space
+        self.render_mode = getattr(self._inner, "render_mode", None)
+        self.spec = getattr(self._inner, "spec", None)
+        self.metadata = getattr(self._inner, "metadata", {})
+        self.np_random = getattr(self._inner, "np_random", None)
+
+    def reset(self, **kwargs: object) -> tuple[object, dict]:
+        return self._inner.reset(**kwargs)
+
+    def step(self, action_idx: int) -> tuple[object, float, bool, bool, dict]:
+        try:
+            action = self._inner._idx_to_action(action_idx, self._inner._state)
+            action_type: str = action.action_type
+        except Exception:
+            action_type = ""
+        obs, reward, terminated, truncated, info = self._inner.step(action_idx)
+        bonus = self._bonuses.get(action_type, 0.0)
+        return obs, float(reward) + bonus, terminated, truncated, info
+
+    def action_masks(self) -> object:
+        return self._inner.action_masks()
+
+    def close(self) -> None:
+        self._inner.close()
+
+    def __getattr__(self, name: str) -> object:
+        return getattr(self._inner, name)
+
+
+# ---------------------------------------------------------------------------
 # Condition runners
 # ---------------------------------------------------------------------------
 
@@ -211,6 +284,125 @@ def _run_condition_bc_ppo(
     }
 
 
+def _run_condition_rag(
+    seed: int,
+    total_timesteps: int,
+    n_envs: int,
+    reward_mode: str,
+    exp_dir: Path,
+    no_tensorboard: bool,
+    oracle_bonuses: dict[str, float],
+) -> dict:
+    """Variant 2: PPO from scratch + oracle reward shaping."""
+    import torch
+    import numpy as np
+    import random as py_random
+    from stable_baselines3.common.env_util import make_vec_env
+    from src.agents.ppo_agent import WinRateCallback, build_maskable_ppo
+
+    torch.manual_seed(seed)
+    np.random.seed(seed)
+    py_random.seed(seed)
+
+    tb_log = None if no_tensorboard else str(exp_dir / "tensorboard")
+
+    bonuses = oracle_bonuses  # already loaded before the seed loop
+
+    def _make_shaped_env() -> _OracleShapedWingspanEnv:
+        return _OracleShapedWingspanEnv(oracle_bonuses=bonuses, reward_mode=reward_mode)
+
+    env = make_vec_env(_make_shaped_env, n_envs=n_envs)
+    eval_env = _OracleShapedWingspanEnv(oracle_bonuses=bonuses, reward_mode=reward_mode)
+    model = build_maskable_ppo(env, seed=seed, tensorboard_log=tb_log)
+
+    cb = WinRateCallback(eval_env=eval_env, eval_freq=50_000, n_eval_episodes=50)
+    model.learn(total_timesteps=total_timesteps, callback=cb, progress_bar=True)
+    eval_env.close()
+
+    checkpoint = exp_dir / "ppo_rag.zip"
+    model.save(str(checkpoint))
+
+    return {
+        "condition": "rag",
+        "seed": seed,
+        "total_timesteps": total_timesteps,
+        "oracle_bonuses": oracle_bonuses,
+        "win_rate_history": cb.win_rate_history,
+        "checkpoint": str(checkpoint),
+    }
+
+
+def _run_condition_full(
+    seed: int,
+    total_timesteps: int,
+    n_envs: int,
+    reward_mode: str,
+    n_demo_games: int,
+    bc_epochs: int,
+    exp_dir: Path,
+    no_tensorboard: bool,
+    oracle_bonuses: dict[str, float],
+) -> dict:
+    """Variant 4: BC pre-train + PPO + oracle reward shaping."""
+    import torch
+    import numpy as np
+    import random as py_random
+    from stable_baselines3.common.env_util import make_vec_env
+    from src.agents.bc_agent import BehavioralCloningTrainer, load_bc_weights_into_ppo
+    from src.agents.ppo_agent import WinRateCallback, build_maskable_ppo
+    from src.envs.wingspan_env import WingspanEnv
+    from src.imitation.demo_buffer import SyntheticDemoGenerator
+
+    torch.manual_seed(seed)
+    np.random.seed(seed)
+    py_random.seed(seed)
+
+    # --- BC phase (standard, no oracle shaping needed for supervised pre-train) ---
+    logger.info("Condition full seed=%d: generating %d demo games…", seed, n_demo_games)
+    gen = SyntheticDemoGenerator(reward_mode=reward_mode)
+    buffer = gen.generate(n_games=n_demo_games, seed=seed)
+
+    env_single = WingspanEnv(reward_mode=reward_mode)
+    model_bc = build_maskable_ppo(env_single, seed=seed, tensorboard_log=None)
+
+    trainer = BehavioralCloningTrainer(model_bc, device="cpu")
+    bc_metrics = trainer.train(buffer, n_epochs=bc_epochs, batch_size=64)
+
+    bc_checkpoint = exp_dir / "bc_pretrain_full.zip"
+    model_bc.save(str(bc_checkpoint))
+
+    # --- PPO phase with oracle shaping ---
+    bonuses = oracle_bonuses
+
+    def _make_shaped_env() -> _OracleShapedWingspanEnv:
+        return _OracleShapedWingspanEnv(oracle_bonuses=bonuses, reward_mode=reward_mode)
+
+    tb_log = None if no_tensorboard else str(exp_dir / "tensorboard")
+    env_vec = make_vec_env(_make_shaped_env, n_envs=n_envs)
+    model_ppo = build_maskable_ppo(env_vec, seed=seed, tensorboard_log=tb_log)
+    load_bc_weights_into_ppo(model_bc, model_ppo)
+
+    eval_env_ppo = _OracleShapedWingspanEnv(oracle_bonuses=bonuses, reward_mode=reward_mode)
+    cb = WinRateCallback(eval_env=eval_env_ppo, eval_freq=50_000, n_eval_episodes=50)
+    model_ppo.learn(total_timesteps=total_timesteps, callback=cb, progress_bar=True)
+    eval_env_ppo.close()
+
+    checkpoint = exp_dir / "ppo_full.zip"
+    model_ppo.save(str(checkpoint))
+
+    return {
+        "condition": "full",
+        "seed": seed,
+        "total_timesteps": total_timesteps,
+        "bc_accuracy": bc_metrics.bc_accuracy,
+        "bc_val_accuracy": bc_metrics.val_accuracy,
+        "bc_n_transitions": bc_metrics.n_transitions,
+        "oracle_bonuses": oracle_bonuses,
+        "win_rate_history": cb.win_rate_history,
+        "checkpoint": str(checkpoint),
+    }
+
+
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
@@ -247,6 +439,14 @@ def main() -> None:
     all_results: list[dict] = []
     start_time = time.time()
 
+    # Pre-compute oracle bonuses once before the seed loop (results are cached
+    # to disk so subsequent runs cost nothing even without the cache file)
+    oracle_bonuses: dict[str, float] = {}
+    if args.include_rag:
+        logger.info("Pre-computing oracle bonuses (cached after first run)…")
+        oracle_cache_dir = exp_dir / "oracle_cache"
+        oracle_bonuses = _load_oracle_bonuses("wingspan", oracle_cache_dir)
+
     for seed in args.seeds:
         logger.info("=== Seed %d ===", seed)
         seed_dir = exp_dir / f"seed_{seed}"
@@ -279,9 +479,33 @@ def main() -> None:
         all_results.append(v3)
 
         if args.include_rag:
-            logger.warning(
-                "RAG variants (2 and 4) not yet implemented — skipping for seed %d.", seed
+            # Variant 2: PPO + oracle reward shaping
+            logger.info("Running variant 2 (rag) seed=%d", seed)
+            v2 = _run_condition_rag(
+                seed=seed,
+                total_timesteps=args.total_timesteps,
+                n_envs=args.n_envs,
+                reward_mode=args.reward_mode,
+                exp_dir=seed_dir,
+                no_tensorboard=args.no_tensorboard,
+                oracle_bonuses=oracle_bonuses,
             )
+            all_results.append(v2)
+
+            # Variant 4: BC + PPO + oracle reward shaping
+            logger.info("Running variant 4 (full) seed=%d", seed)
+            v4 = _run_condition_full(
+                seed=seed,
+                total_timesteps=args.total_timesteps,
+                n_envs=args.n_envs,
+                reward_mode=args.reward_mode,
+                n_demo_games=args.n_demo_games,
+                bc_epochs=args.bc_epochs,
+                exp_dir=seed_dir,
+                no_tensorboard=args.no_tensorboard,
+                oracle_bonuses=oracle_bonuses,
+            )
+            all_results.append(v4)
 
     elapsed = time.time() - start_time
 
