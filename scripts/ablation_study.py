@@ -127,8 +127,8 @@ def _run_condition_baseline(
     py_random.seed(seed)
 
     tb_log = None if no_tensorboard else str(exp_dir / "tensorboard")
-    env = make_vec_env(lambda: WingspanEnv(reward_mode=reward_mode, seed=seed), n_envs=n_envs)
-    eval_env = WingspanEnv(reward_mode=reward_mode, seed=seed + 9999)
+    env = make_vec_env(lambda: WingspanEnv(reward_mode=reward_mode), n_envs=n_envs)
+    eval_env = WingspanEnv(reward_mode=reward_mode)
     model = build_maskable_ppo(env, seed=seed, tensorboard_log=tb_log)
 
     cb = WinRateCallback(eval_env=eval_env, eval_freq=50_000, n_eval_episodes=50)
@@ -176,7 +176,7 @@ def _run_condition_bc_ppo(
     gen = SyntheticDemoGenerator(reward_mode=reward_mode)
     buffer = gen.generate(n_games=n_demo_games, seed=seed)
 
-    env_single = WingspanEnv(reward_mode=reward_mode, seed=seed)
+    env_single = WingspanEnv(reward_mode=reward_mode)
     model_bc = build_maskable_ppo(env_single, seed=seed, tensorboard_log=None)
 
     trainer = BehavioralCloningTrainer(model_bc, device="cpu")
@@ -187,11 +187,11 @@ def _run_condition_bc_ppo(
 
     # --- PPO phase ---
     tb_log = None if no_tensorboard else str(exp_dir / "tensorboard")
-    env_vec = make_vec_env(lambda: WingspanEnv(reward_mode=reward_mode, seed=seed), n_envs=n_envs)
+    env_vec = make_vec_env(lambda: WingspanEnv(reward_mode=reward_mode), n_envs=n_envs)
     model_ppo = build_maskable_ppo(env_vec, seed=seed, tensorboard_log=tb_log)
     load_bc_weights_into_ppo(model_bc, model_ppo)
 
-    eval_env_ppo = WingspanEnv(reward_mode=reward_mode, seed=seed + 9999)
+    eval_env_ppo = WingspanEnv(reward_mode=reward_mode)
     cb = WinRateCallback(eval_env=eval_env_ppo, eval_freq=50_000, n_eval_episodes=50)
     model_ppo.learn(total_timesteps=total_timesteps, callback=cb, progress_bar=True)
     eval_env_ppo.close()
