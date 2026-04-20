@@ -121,6 +121,23 @@ validator runs without API calls (~$0/step vs ~$0.003/step for LLM inference).
 
 Total API cost for the project: ~$15 USD.
 
+**Rule Oracle accuracy on golden dataset (50 questions, keyword-based scoring):**
+
+| Category | Correct | Accuracy |
+|----------|---------|----------|
+| basic_turn (10 q) | 7 | 70% |
+| bird_power (15 q) | 8 | 53% |
+| end_of_round (10 q) | 5 | 50% |
+| edge_case (10 q) | 3 | 30% |
+| exception (5 q) | 0 | 0% |
+| **Total (50 q)** | **23** | **46%** |
+
+Overall accuracy is below the 0.80 target. The drop is concentrated in edge cases
+and exceptions — situations that are either absent from the ingested PDF or appear
+in sections the chunker did not capture well. Basic turn questions (70%) confirm
+the retrieval pipeline works for common queries. This limitation is addressed in
+Section 6.
+
 ### 3.2 Environment Layer
 
 Game state is an immutable Pydantic v2 model; `step()` returns a new state via
@@ -278,8 +295,13 @@ El framework generaliza: misma arquitectura, ~18% código nuevo, WR > 0.5 en amb
 3. **Scale:** Wingspan has ~170 birds in the full game; we implement 74.  Terraforming
    Mars (~350 project cards) would stress the observation space design.
 
-4. **API cost bound:** The $15 budget limits Rule Oracle accuracy evaluation to the
-   development dataset; online LLM-assisted rule refinement is not done.
+4. **Rule Oracle accuracy:** Overall accuracy on the 50-question golden dataset is
+   46% (keyword-based scoring). Performance degrades sharply for edge cases (30%)
+   and exceptions (0%) — rare rule situations that are either absent from the ingested
+   PDF sections or require multi-hop reasoning across chunks. The training pipeline
+   is unaffected (the Python rule engine runs independently), but the RAG component
+   would need a more complete rulebook ingestion and a stronger retrieval strategy
+   (e.g., HyDE, reranking) to reach the 0.80 target in production use.
 
 ---
 
