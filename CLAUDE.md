@@ -440,6 +440,7 @@ Sprint 7 — Generalización      [x] Completado (2026-04-19)
 Post-S7 — Scripts multi-juego  [x] Completado (2026-04-20)
 Post-S7 — Rule Oracle 90%      [x] Completado (2026-04-20)
 Post-S7 — RAG ablation vars    [x] Completado (2026-04-20)
+Post-S7 — Ablación RAG + análisis  [x] Completado (2026-04-21)
 ```
 
 Actualiza esta sección al final de cada sesión de trabajo.
@@ -712,11 +713,36 @@ El bonus está escalado con `confidence × _BONUS_SCALE (0.05)` para no dominar 
 Regla: cualquier integración de LLM en RL debe distinguir entre fase de setup (puede llamar API,
 resultados cacheables) y fase de training (cero llamadas API, solo lookups deterministas).
 
+**`gymnasium.Wrapper` es la forma correcta de envolver envs para SB3**
+`_patch_env()` de SB3 verifica `isinstance(env, gymnasium.Env)` antes de aceptar el env.
+Un wrapper de composición que no hereda de `gymnasium.Env` falla en `make_vec_env` con
+`ValueError: not a Gymnasium environment`.
+Regla: siempre subclasear `gymnasium.Wrapper` (no composición) para wrappers de env
+que van a usarse con `make_vec_env` o cualquier VecEnv de SB3.
+
+**Resultado de ablación RAG: la confianza del LLM no es un proxy para valor estratégico**
+Ablación completa 4 condiciones × 3 seeds. Resultados finales (WR vs random a 1M steps):
+- Baseline: 0.927 ± 0.031 | BC+PPO: 0.973 ± 0.012 | RAG: 0.847 ± 0.031 | BC+RAG: 0.807 ± 0.042
+Ambos variants RAG rinden PEOR que el baseline sin oracle. El mecanismo:
+el Oracle asignó mayor confianza a `gain_food` (0.055) que a `play_bird` (0.0025),
+pero en Wingspan `play_bird` tiene mayor valor marginal real por step. El bonus distorsionó
+el landscape de recompensas hacia acumulación de comida — estrategia subóptima.
+Regla: la confianza de un LLM en una pregunta estratégica es una medida epistémica
+("¿está escrito esto en las reglas?"), no una medida de valor marginal por step en RL.
+No usar confidence como reward bonus sin calibración contra la distribución de rewards del env.
+
+**BC no recupera el daño de un reward landscape distorsionado**
+Variante 3 (BC+PPO): WR 0.973. Variante 4 (BC+RAG): WR 0.807.
+Añadir oracle shaping sobre un prior BC bueno destruyó la ventaja del prior en ~200-400k steps.
+Regla: un reward shaper mal calibrado es más dañino con un buen prior que sin él —
+el prior lleva al agente exactamente hacia donde el shaper lo desvía más.
+
 **Estado actual del proyecto:**
 ```
 Post-S7 — Scripts multi-juego  [x] Completado (2026-04-20)
 Post-S7 — Rule Oracle 90%      [x] Completado (2026-04-20)
 Post-S7 — RAG ablation vars    [x] Completado (2026-04-20)
+Post-S7 — Ablación RAG ejecutada y analizada  [x] Completado (2026-04-21)
 ```
 
 ---

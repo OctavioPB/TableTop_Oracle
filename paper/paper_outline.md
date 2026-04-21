@@ -18,11 +18,13 @@ near zero.
 
 We evaluate the system on Wingspan (74 unique bird cards, 4-round structure) and
 demonstrate generalisation to 7 Wonders Duel (69 cards, 3 distinct win conditions)
-with under 20% changes to the codebase.  An ablation study over 2 conditions × 3
-seeds shows that BC pre-training reduces cross-seed variance by 52% (std 0.016 vs
-0.033) and improves average score consistency, while both conditions reach 0.94 win
-rate vs. a random baseline at 1M training steps.  Action masking is necessary (not
-merely helpful) for correct strategy acquisition in discrete combinatorial games.
+with under 20% changes to the codebase.  A full 4-condition ablation over 3 seeds
+isolates the contribution of each component.  BC pre-training achieves the highest
+final win rate (0.973 ± 0.012 vs. random) and reduces cross-seed variance by 62%.
+Critically, oracle-guided reward shaping — using LLM confidence as a proxy for
+strategic value — consistently hurts performance (0.847 ± 0.031), providing a
+cautionary finding for hybrid LLM+RL systems: LLM confidence is not a reliable
+signal for per-step reward shaping in complex games.
 
 ---
 
@@ -49,9 +51,14 @@ for millions of RL steps.
 2. Empirical evidence that **action masking is not optional** for discrete strategy games:
    without it, PPO learns avoidance heuristics rather than strategy.
 3. A **Behavioural Cloning (BC) warm-start** pipeline using a synthetic GreedyAgent
-   expert, achieving faster convergence than PPO from scratch.
+   expert, achieving the highest final win rate (0.973 ± 0.012) and 62% variance
+   reduction across seeds vs. PPO baseline (0.927 ± 0.031).
 4. The first demonstration of **cross-game generalisation** from Wingspan to 7 Wonders
-   Duel with minimal architectural changes.
+   Duel with minimal architectural changes (~18% of codebase).
+5. A **negative result on oracle reward shaping**: LLM confidence scores used as
+   per-step reward bonuses consistently degrade RL performance (WR 0.847 vs 0.927
+   baseline), establishing that oracle guidance is valuable for rule grounding but
+   not for naive reward shaping.
 
 ### 1.3 Paper organisation
 
@@ -189,36 +196,50 @@ rolls out GreedyAgent through the env to build the demonstration buffer.
 
 ### 4.3 Results
 
-Results averaged over 3 seeds (42, 123, 7). Variants 2 and 4 (RAG) pending
-`--include-rag` run once ChromaDB oracle evaluation is complete.
+**Table 1. Wingspan ablation — full 4-condition results (mean ± std, 3 seeds)**
 
-**Table 1. Wingspan ablation results (mean ± std, 3 seeds)**
+| Variant | Final WR vs random | Avg score P0 | Std WR |
+|---------|--------------------|--------------|--------|
+| 1 — Baseline | 0.927 ± 0.031 | 80.7 ± 1.9 | 0.031 |
+| 2 — RAG | 0.847 ± 0.031 | 69.5 ± 1.1 | 0.031 |
+| 3 — BC+PPO | **0.973 ± 0.012** | **84.5 ± 1.9** | 0.012 |
+| 4 — Full (BC+RAG) | 0.807 ± 0.042 | 69.1 ± 2.5 | 0.042 |
 
-| Variant | Final WR vs random | Avg score P0 | Steps to 55% WR |
-|---------|--------------------|--------------|-----------------|
-| 1 — Baseline | **0.940 ± 0.033** | 82.6 ± 1.7 | 200,000 |
-| 2 — RAG | pending | pending | pending |
-| 3 — BC+PPO | 0.920 ± 0.016 | **83.2 ± 0.6** | 200,000 |
-| 4 — Full | pending | pending | pending |
+All conditions reach WR ≥ 0.55 by the first evaluation checkpoint (200k steps).
+Oracle bonuses used: `gain_food`=0.0275, `lay_eggs`=0.015, `draw_cards`=0.005,
+`play_bird`=0.0025 (derived from oracle confidence × 0.05 scale factor).
 
-**Finding 1 — BC improves training stability, not peak performance.**
-On Wingspan, both conditions reach WR ≥ 0.55 at the same checkpoint (200k steps)
-and converge to similar final win rates (0.940 vs 0.920). The measurable contribution
-of BC is a 52% reduction in cross-seed standard deviation (0.016 vs 0.033) and
-consistently higher average scores (83.2 vs 82.6). For a research system targeting
-reproducible results across seeds, variance reduction is a meaningful contribution
-independent of peak win rate.
+**Finding 1 — BC+PPO achieves both the highest win rate and lowest variance.**
+BC+PPO reaches a final WR of 0.973, outperforming all other conditions, while
+reducing cross-seed standard deviation by 62% relative to the baseline (0.012 vs
+0.031). The combination of a GreedyAgent prior and PPO fine-tuning is the dominant
+configuration in Wingspan. Average score improvement (+4.8 points over baseline)
+confirms that BC produces a more strategically coherent agent, not merely higher
+win rates against a weak opponent.
 
-**Finding 2 — The effect of BC scales with game complexity.**
-The same BC+PPO pipeline applied to 7 Wonders Duel (Section 5) shows a qualitatively
-different pattern: BC+PPO achieves WR 0.800 vs 0.667 for PPO baseline (+13.3 points),
-while PPO baseline reaches WR ≥ 0.55 faster (50k vs 200k steps) but plateaus lower.
-This suggests BC is more valuable in games with larger action spaces where the
-GreedyAgent prior redirects exploration away from low-value regions that PPO from
-scratch spends significant budget investigating.
+**Finding 2 — Oracle reward shaping consistently hurts RL performance.**
+Both RAG variants (2 and 4) perform below the no-oracle baseline:
+WR 0.847 (−8.6%) for RAG-only and 0.807 (−12.9%) for BC+RAG.
+Average scores drop by ~13 points (80.7 → 69.5) despite the oracle bonuses being
+small (max 0.0275 per step) relative to the dense base reward.
+
+The mechanism: the oracle correctly identified `gain_food` as "strategically
+important" (confidence 0.55, highest of the four actions), but in Wingspan's actual
+reward structure, `play_bird` yields the highest immediate returns per action.
+The confidence-scaled bonus inverted the marginal-value ordering of actions —
+pushing the agent toward food accumulation rather than bird deployment.
+This is a concrete instance of **reward shaping misalignment**: an LLM's confidence
+in a factual claim about strategic importance does not correlate with per-step
+marginal reward contribution in a complex game.
+
+**Finding 3 — BC does not recover from misaligned shaping.**
+Comparing variants 3 (BC+PPO, 0.973) and 4 (BC+RAG, 0.807) shows that adding
+oracle shaping on top of a good BC prior actively destroys the advantage BC
+established. The initialisation benefit of BC is erased by the distorted reward
+landscape in approximately 200–400k steps.
 
 **Figure reference:** See `figures/ablation_curves.png` for Wingspan learning curves
-with per-seed confidence bands; `figures/7wd_ablation_curves.png` for 7WD.
+with per-seed confidence bands.
 
 ### 4.4 Action masking ablation
 
@@ -299,11 +320,15 @@ El framework generaliza: misma arquitectura, ~18% código nuevo, WR > 0.5 en amb
    Mars (~350 project cards) would stress the observation space design.
 
 4. **Rule Oracle exception coverage:** Overall accuracy on the 50-question golden
-   dataset is 80%, meeting the target. The `exception` category (60%) covers
-   implicit meta-rules of board games that are rarely written explicitly in any
-   rulebook and require general domain knowledge to answer. Reaching 100% on this
-   category would require either a more exhaustive community-maintained FAQ or
-   an LLM with strong prior knowledge of board game conventions.
+   dataset is 90%, exceeding the 0.80 target. The `exception` category (60%) covers
+   implicit meta-rules that no official document addresses explicitly. Reaching 100%
+   would require general board game prior knowledge beyond any rulebook.
+
+5. **Oracle reward shaping requires calibration:** The confidence-scaled bonus
+   approach in Variants 2 and 4 produced misaligned incentives — an LLM's confidence
+   in a rule answer is not a reliable proxy for per-step marginal strategic value.
+   Future work should explore oracle-calibrated shaping that accounts for the
+   environment's reward magnitude distribution rather than raw confidence scores.
 
 ---
 
@@ -318,6 +343,15 @@ once to synthesise a Python rule engine costs ~$15; using them at runtime would 
 The cross-game generalisation experiment confirms that the framework is not Wingspan-
 specific: adding a new game requires only new game-layer modules (~18% of code) while
 reusing the entire agent and evaluation infrastructure.
+
+The full 4-condition ablation produces three clear findings: (1) BC+PPO is the
+dominant configuration, achieving WR 0.973 with 62% lower variance than PPO baseline;
+(2) oracle-guided reward shaping consistently hurts performance because LLM confidence
+is not a reliable proxy for per-step marginal value in complex games; and (3) BC
+pre-training cannot recover from a misaligned reward landscape introduced by
+oracle shaping. These findings delineate where LLM guidance adds value in hybrid
+LLM+RL systems — at the rule grounding layer (90% oracle accuracy) — and where it
+does not: as a naive reward signal during training.
 
 ---
 

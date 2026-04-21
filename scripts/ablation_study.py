@@ -134,45 +134,44 @@ def _load_oracle_bonuses(game: str, cache_dir: Path) -> dict[str, float]:
 
 
 class _OracleShapedWingspanEnv:
-    """Thin wrapper around WingspanEnv that adds per-step oracle action bonuses.
+    """gymnasium.Wrapper subclass that adds oracle-derived per-step bonuses.
 
-    Uses composition (not subclassing) to avoid MRO conflicts. DummyVecEnv
-    (make_vec_env default) runs in-process so no pickling is required.
+    Inherits from gymnasium.Wrapper (which inherits from gymnasium.Env) so
+    SB3's _patch_env() isinstance check passes without extra configuration.
+    action_masks() is forwarded to the inner env so MaskablePPO still works.
     """
 
-    def __init__(self, oracle_bonuses: dict[str, float], reward_mode: str = "dense") -> None:
+    # Defined as a function so the WingspanEnv import stays lazy
+    @staticmethod
+    def _build(oracle_bonuses: dict[str, float], reward_mode: str = "dense") -> "gymnasium.Wrapper":  # type: ignore[name-defined]
+        import gymnasium as gym
         from src.envs.wingspan_env import WingspanEnv
 
-        self._inner = WingspanEnv(reward_mode=reward_mode)
-        self._bonuses = oracle_bonuses
-        self.observation_space = self._inner.observation_space
-        self.action_space = self._inner.action_space
-        self.render_mode = getattr(self._inner, "render_mode", None)
-        self.spec = getattr(self._inner, "spec", None)
-        self.metadata = getattr(self._inner, "metadata", {})
-        self.np_random = getattr(self._inner, "np_random", None)
+        class _Impl(gym.Wrapper):
+            _bonuses = oracle_bonuses
 
-    def reset(self, **kwargs: object) -> tuple[object, dict]:
-        return self._inner.reset(**kwargs)
+            def __init__(self) -> None:
+                super().__init__(WingspanEnv(reward_mode=reward_mode))
 
-    def step(self, action_idx: int) -> tuple[object, float, bool, bool, dict]:
-        try:
-            action = self._inner._idx_to_action(action_idx, self._inner._state)
-            action_type: str = action.action_type
-        except Exception:
-            action_type = ""
-        obs, reward, terminated, truncated, info = self._inner.step(action_idx)
-        bonus = self._bonuses.get(action_type, 0.0)
-        return obs, float(reward) + bonus, terminated, truncated, info
+            def step(self, action_idx: int):  # type: ignore[override]
+                try:
+                    action = self.env._idx_to_action(action_idx, self.env._state)
+                    action_type: str = action.action_type
+                except Exception:
+                    action_type = ""
+                obs, reward, terminated, truncated, info = self.env.step(action_idx)
+                bonus = self._bonuses.get(action_type, 0.0)
+                return obs, float(reward) + bonus, terminated, truncated, info
 
-    def action_masks(self) -> object:
-        return self._inner.action_masks()
+            def action_masks(self) -> object:
+                return self.env.action_masks()
 
-    def close(self) -> None:
-        self._inner.close()
+        return _Impl()
 
-    def __getattr__(self, name: str) -> object:
-        return getattr(self._inner, name)
+
+def _make_oracle_shaped(bonuses: dict[str, float], reward_mode: str = "dense") -> object:
+    """Factory callable compatible with make_vec_env."""
+    return _OracleShapedWingspanEnv._build(oracle_bonuses=bonuses, reward_mode=reward_mode)
 
 
 # ---------------------------------------------------------------------------
@@ -308,11 +307,8 @@ def _run_condition_rag(
 
     bonuses = oracle_bonuses  # already loaded before the seed loop
 
-    def _make_shaped_env() -> _OracleShapedWingspanEnv:
-        return _OracleShapedWingspanEnv(oracle_bonuses=bonuses, reward_mode=reward_mode)
-
-    env = make_vec_env(_make_shaped_env, n_envs=n_envs)
-    eval_env = _OracleShapedWingspanEnv(oracle_bonuses=bonuses, reward_mode=reward_mode)
+    env = make_vec_env(lambda: _make_oracle_shaped(bonuses, reward_mode), n_envs=n_envs)
+    eval_env = _make_oracle_shaped(bonuses, reward_mode)
     model = build_maskable_ppo(env, seed=seed, tensorboard_log=tb_log)
 
     cb = WinRateCallback(eval_env=eval_env, eval_freq=50_000, n_eval_episodes=50)
@@ -374,15 +370,12 @@ def _run_condition_full(
     # --- PPO phase with oracle shaping ---
     bonuses = oracle_bonuses
 
-    def _make_shaped_env() -> _OracleShapedWingspanEnv:
-        return _OracleShapedWingspanEnv(oracle_bonuses=bonuses, reward_mode=reward_mode)
-
     tb_log = None if no_tensorboard else str(exp_dir / "tensorboard")
-    env_vec = make_vec_env(_make_shaped_env, n_envs=n_envs)
+    env_vec = make_vec_env(lambda: _make_oracle_shaped(bonuses, reward_mode), n_envs=n_envs)
     model_ppo = build_maskable_ppo(env_vec, seed=seed, tensorboard_log=tb_log)
     load_bc_weights_into_ppo(model_bc, model_ppo)
 
-    eval_env_ppo = _OracleShapedWingspanEnv(oracle_bonuses=bonuses, reward_mode=reward_mode)
+    eval_env_ppo = _make_oracle_shaped(bonuses, reward_mode)
     cb = WinRateCallback(eval_env=eval_env_ppo, eval_freq=50_000, n_eval_episodes=50)
     model_ppo.learn(total_timesteps=total_timesteps, callback=cb, progress_bar=True)
     eval_env_ppo.close()
