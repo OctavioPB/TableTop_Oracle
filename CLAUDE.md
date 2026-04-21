@@ -437,10 +437,13 @@ Sprint 4 — RL Agent            [x] Completado (2026-04-18)
 Sprint 5 — Imitation Learning  [x] Completado (2026-04-18)
 Sprint 6 — Evaluación          [x] Completado (2026-04-19)
 Sprint 7 — Generalización      [x] Completado (2026-04-19)
-Post-S7 — Scripts multi-juego  [x] Completado (2026-04-20)
-Post-S7 — Rule Oracle 90%      [x] Completado (2026-04-20)
-Post-S7 — RAG ablation vars    [x] Completado (2026-04-20)
-Post-S7 — Ablación RAG + análisis  [x] Completado (2026-04-21)
+Post-S7 — Scripts multi-juego       [x] Completado (2026-04-20)
+Post-S7 — Rule Oracle 90%           [x] Completado (2026-04-20)
+Post-S7 — RAG ablation vars         [x] Completado (2026-04-20)
+Post-S7 — Ablación RAG + análisis   [x] Completado (2026-04-21)
+Post-S7 — Splendor engine + env     [x] Completado (2026-04-21)
+Post-S7 — Splendor baseline 3 seeds [x] Completado (2026-04-21)
+Post-S7 — Splendor BC+PPO           [ ] Pendiente
 ```
 
 Actualiza esta sección al final de cada sesión de trabajo.
@@ -743,6 +746,81 @@ Post-S7 — Scripts multi-juego  [x] Completado (2026-04-20)
 Post-S7 — Rule Oracle 90%      [x] Completado (2026-04-20)
 Post-S7 — RAG ablation vars    [x] Completado (2026-04-20)
 Post-S7 — Ablación RAG ejecutada y analizada  [x] Completado (2026-04-21)
+```
+
+---
+
+### Splendor — Tercer juego (2026-04-21)
+
+**`CARD_FEATURES` off-by-one: layout de 12 dims declarado como 11**
+El vector por carta tiene: occupied(1) + vp(1) + bonus one-hot(5) + costs(5) = 12 dims.
+Se declaró `CARD_FEATURES = 11`, causando `IndexError: index 11 is out of bounds for axis 0 with size 11`
+al escribir el costo en `vec[7+4]`.
+Regla: antes de declarar `N_FEATURES`, contar explícitamente cada campo del vector (suma manual).
+No confiar en que el nombre del layout coincide con el tamaño real.
+
+**`PLAYER_FEATURES` debe recalcularse en cascada cuando cambia `CARD_FEATURES`**
+`PLAYER_FEATURES = 12 + 3*CARD_FEATURES + 1`. Al corregir `CARD_FEATURES` de 11 a 12,
+el vector de player pasó de 46 a 49 dims pero la constante no se actualizó, causando
+`ValueError: could not broadcast input array from shape (12,) into shape (10,)`.
+Regla: cuando una constante de features depende de otra, documentar la fórmula en el comentario
+de la constante: `PLAYER_FEATURES = 49  # gems(6)+bonus(5)+vp(1)+reserved(3×12)+cards(1)`.
+
+**Reserve + gold: verificar `total_gems() < 10` antes de dar el token de oro**
+En Splendor, reservar una carta da 1 gold del banco. El engine daba el gold sin verificar
+si el jugador ya tenía 10 gems, produciendo estados con 11 gems.
+Regla: para acciones de juego que dan recursos como efecto secundario, verificar la capacidad
+máxima del receptor antes de transferir, no solo al generar las acciones legales.
+
+**Action space incompleto: Splendor permite tomar 1 o 2 gems distintas, no solo 3**
+El action space inicial solo incluía los 10 combos de 3 gems distintas. En late-game con banco
+escaso (< 3 tipos disponibles), no se generaban acciones de tomar gems, causando listas vacías.
+Regla: leer las reglas completas de cada acción antes de diseñar el action space.
+"Take 3 different gems" en Splendor significa "take up to 3" — el rango completo es
+C(5,1)+C(5,2)+C(5,3) = 25 combos. El space correcto es Discrete(60), no Discrete(45).
+
+**Bucle infinito: fallback de "pass vacío" no avanza el estado**
+La primera solución al problema de lista vacía fue un fallback que añadía una acción
+`TAKE_3_GEMS(gems_taken=[])`. El engine aplicaba la acción sin cambiar el estado,
+ambos jugadores entraban en el mismo fallback, y el episodio nunca terminaba.
+Regla: un fallback que no muta el estado produce un bucle infinito garantizado en cualquier
+game loop. El patrón correcto es: (a) expandir el action space para cubrir el caso real,
+y (b) añadir truncation por `max_steps` para los estados verdaderamente degenerados.
+
+**`np_random.integers(0, 0)` cuando el oponente no tiene acciones legales**
+`_run_opponent()` usaba `self.np_random.integers(0, len(legal))`. Si `len(legal) == 0`,
+numpy lanza `ValueError: high <= 0`. El oponente puede quedar sin acciones en los mismos
+estados degenerados que el agente.
+Regla: siempre verificar `if not legal: return` antes de samplear de una lista de acciones.
+El env debe manejar el turno vacío del oponente retornando el estado sin cambios; la
+truncation por `max_steps` termina el episodio en el siguiente step del agente.
+
+**`check_env()` samplea acciones no-maskeadas → el engine debe ser robusto a card_id vacío**
+`gymnasium.utils.env_checker.check_env()` llama `env.step(action_space.sample())` con
+acciones completamente aleatorias, ignorando el mask. Esto genera acciones `BUY_BOARD` o
+`BUY_RESERVED` que apuntan a slots vacíos, resultando en `card_id=''` → `KeyError` en
+`CARDS_BY_ID['']`.
+Regla: el engine debe hacer `if act.card_id and act.card_id in CARDS_BY_ID:` antes de
+procesar cualquier compra. Acciones inválidas deben resolverse como no-op, no como crash.
+`check_env()` no usa mask — es una propiedad del checker, no un bug del env.
+
+**Convergencia de Splendor es más rápida que Wingspan/7WD**
+PPO baseline alcanza WR 0.95 en el primer checkpoint (50k steps) vs 200k en Wingspan.
+Causa: action space más pequeño (60 vs 150 acciones) + reward más denso (VP inmediato por
+cada compra vs reward acumulado en Wingspan).
+Implicación para el paper: la velocidad de convergencia escala inversamente con la
+complejidad del action space — esto es una observación cuantificable y publicable.
+Resultado final Splendor baseline: WR 0.937 ± 0.017, avg score 16.4 VP (threshold = 15 VP).
+
+**Estado actual del proyecto:**
+```
+Post-S7 — Scripts multi-juego       [x] Completado (2026-04-20)
+Post-S7 — Rule Oracle 90%           [x] Completado (2026-04-20)
+Post-S7 — RAG ablation vars         [x] Completado (2026-04-20)
+Post-S7 — Ablación RAG ejecutada    [x] Completado (2026-04-21)
+Post-S7 — Splendor engine + env     [x] Completado (2026-04-21)
+Post-S7 — Splendor baseline 3 seeds [x] Completado (2026-04-21)
+Post-S7 — Splendor BC+PPO           [ ] Pendiente
 ```
 
 ---

@@ -1,12 +1,12 @@
-"""Splendor action space — flat Discrete(45) layout.
+"""Splendor action space — flat Discrete(60) layout.
 
 Index layout:
-  0–9   take_3_gems     10 combinations of 3 distinct gem types from 5
-  10–14 take_2_gems     one per gem type (valid only if bank has ≥4)
-  15–26 reserve_board   tier*4+slot  (tier 0-2, slot 0-3) → offset 15
-  27–29 reserve_deck    top of tier 1/2/3 → offsets 27/28/29
-  30–41 buy_board       tier*4+slot → offset 30
-  42–44 buy_reserved    reserved slot 0/1/2 → offsets 42/43/44
+  0–24  take_gems       25 combos: C(5,1)=5 + C(5,2)=10 + C(5,3)=10 distinct types
+  25–29 take_2_same     one per gem type (valid only if bank has ≥4)
+  30–41 reserve_board   tier*4+slot  (tier 0-2, slot 0-3) → offset 30
+  42–44 reserve_deck    top of tier 1/2/3 → offsets 42/43/44
+  45–56 buy_board       tier*4+slot → offset 45
+  57–59 buy_reserved    reserved slot 0/1/2 → offsets 57/58/59
 """
 
 from __future__ import annotations
@@ -23,31 +23,32 @@ from src.games.splendor.cards import GEM_TYPES
 # Pre-computed index maps
 # ---------------------------------------------------------------------------
 
-# 10 sorted 3-gem combinations from 5 types
-_TAKE3_COMBOS: list[tuple[str, str, str]] = [
-    tuple(sorted(c)) for c in combinations(GEM_TYPES, 3)  # type: ignore[misc]
-]
+# All distinct-gem combos: 1-gem (5) + 2-gem (10) + 3-gem (10) = 25
+_TAKE_DISTINCT_COMBOS: list[tuple[str, ...]] = []
+for _n in (1, 2, 3):
+    for _c in combinations(GEM_TYPES, _n):
+        _TAKE_DISTINCT_COMBOS.append(tuple(sorted(_c)))
 
-_TAKE3_COMBO_TO_IDX: dict[tuple[str, ...], int] = {
-    combo: i for i, combo in enumerate(_TAKE3_COMBOS)
+_TAKE_COMBO_TO_IDX: dict[tuple[str, ...], int] = {
+    combo: i for i, combo in enumerate(_TAKE_DISTINCT_COMBOS)
 }
 _GEM_TO_IDX: dict[str, int] = {g: i for i, g in enumerate(GEM_TYPES)}
 
-N_MAX_ACTIONS_SPLENDOR: int = 45
+N_MAX_ACTIONS_SPLENDOR: int = 60
 
 # Index ranges
-TAKE3_START = 0
-TAKE3_END = 9       # inclusive
-TAKE2_START = 10
-TAKE2_END = 14
-RESERVE_BOARD_START = 15
-RESERVE_BOARD_END = 26
-RESERVE_DECK_START = 27
-RESERVE_DECK_END = 29
-BUY_BOARD_START = 30
-BUY_BOARD_END = 41
-BUY_RESERVED_START = 42
-BUY_RESERVED_END = 44
+TAKE_DISTINCT_START = 0
+TAKE_DISTINCT_END = 24    # inclusive (25 combos)
+TAKE2_SAME_START = 25
+TAKE2_SAME_END = 29
+RESERVE_BOARD_START = 30
+RESERVE_BOARD_END = 41
+RESERVE_DECK_START = 42
+RESERVE_DECK_END = 44
+BUY_BOARD_START = 45
+BUY_BOARD_END = 56
+BUY_RESERVED_START = 57
+BUY_RESERVED_END = 59
 
 
 def action_to_index(action: "SplendorAction") -> int:
@@ -55,10 +56,10 @@ def action_to_index(action: "SplendorAction") -> int:
     t = action.action_type
     if t == SplendorActionType.TAKE_3_GEMS:
         key = tuple(sorted(action.gems_taken))
-        return TAKE3_START + _TAKE3_COMBO_TO_IDX[key]
+        return TAKE_DISTINCT_START + _TAKE_COMBO_TO_IDX[key]
     if t == SplendorActionType.TAKE_2_GEMS:
         gem = action.gems_taken[0]
-        return TAKE2_START + _GEM_TO_IDX[gem]
+        return TAKE2_SAME_START + _GEM_TO_IDX[gem]
     if t == SplendorActionType.RESERVE_BOARD:
         return RESERVE_BOARD_START + action.tier * 4 + action.slot
     if t == SplendorActionType.RESERVE_DECK:
@@ -72,11 +73,11 @@ def action_to_index(action: "SplendorAction") -> int:
 
 def index_to_action_params(idx: int) -> dict[str, Any]:
     """Return kwargs needed to reconstruct a SplendorAction from its index."""
-    if TAKE3_START <= idx <= TAKE3_END:
-        combo = _TAKE3_COMBOS[idx - TAKE3_START]
+    if TAKE_DISTINCT_START <= idx <= TAKE_DISTINCT_END:
+        combo = _TAKE_DISTINCT_COMBOS[idx - TAKE_DISTINCT_START]
         return {"action_type": SplendorActionType.TAKE_3_GEMS, "gems_taken": list(combo)}
-    if TAKE2_START <= idx <= TAKE2_END:
-        gem = GEM_TYPES[idx - TAKE2_START]
+    if TAKE2_SAME_START <= idx <= TAKE2_SAME_END:
+        gem = GEM_TYPES[idx - TAKE2_SAME_START]
         return {"action_type": SplendorActionType.TAKE_2_GEMS, "gems_taken": [gem, gem]}
     if RESERVE_BOARD_START <= idx <= RESERVE_BOARD_END:
         offset = idx - RESERVE_BOARD_START

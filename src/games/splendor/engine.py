@@ -95,15 +95,18 @@ class SplendorEngine(GameEngine):
         current_gems = board.total_gems()
 
         # Take 3 different (only if total gems won't exceed 10 and ≥3 gem types in bank)
-        if len(available) >= 3:
-            from itertools import combinations
-            for combo in combinations(available, 3):
-                if current_gems + 3 <= 10:
-                    actions.append(SplendorAction(
-                        action_type=SplendorActionType.TAKE_3_GEMS,
-                        gems_taken=list(combo),
-                        player_id=state.player_id,
-                    ))
+        # Take up to 3 different gems — Splendor rule allows fewer if bank has < 3 types
+        from itertools import combinations
+        n_take = min(3, len(available))
+        for n in range(1, n_take + 1):
+            if current_gems + n > 10:
+                continue
+            for combo in combinations(available, n):
+                actions.append(SplendorAction(
+                    action_type=SplendorActionType.TAKE_3_GEMS,
+                    gems_taken=list(combo),
+                    player_id=state.player_id,
+                ))
 
         # Take 2 of same (bank must have ≥4 of that type, player ≤8 gems)
         for gem in GEM_TYPES:
@@ -165,15 +168,8 @@ class SplendorEngine(GameEngine):
                         player_id=state.player_id,
                     ))
 
-        # Fallback: if somehow empty (e.g., all gems 0 and can't buy), allow pass
-        # In practice Splendor always has at least one legal action early game
         if not actions:
-            logger.warning("No legal actions found for player %d — returning pass", state.player_id)
-            actions.append(SplendorAction(
-                action_type=SplendorActionType.TAKE_3_GEMS,
-                gems_taken=[],
-                player_id=state.player_id,
-            ))
+            logger.debug("No legal actions for player %d — episode will truncate", state.player_id)
 
         return actions
 
@@ -235,28 +231,34 @@ class SplendorEngine(GameEngine):
                 events.append(f"P{pid} reserved top of tier {act.tier}")
 
         elif t == SplendorActionType.BUY_BOARD:
-            card = CARDS_BY_ID[act.card_id]
-            payment = board.payment_for(card.cost)
-            for gem, amount in payment.items():
-                board.gems[gem] = max(0, board.gems.get(gem, 0) - amount)
-                bank[gem] = bank.get(gem, 0) + amount
-            board.cards_owned.append(act.card_id)
-            board_grid[act.tier][act.slot] = None
-            if decks[act.tier]:
-                board_grid[act.tier][act.slot] = decks[act.tier].pop(0)
-            vp_gained = float(card.vp)
-            events.append(f"P{pid} bought {act.card_id} (+{card.vp} VP)")
+            if act.card_id and act.card_id in CARDS_BY_ID:
+                card = CARDS_BY_ID[act.card_id]
+                payment = board.payment_for(card.cost)
+                for gem, amount in payment.items():
+                    board.gems[gem] = max(0, board.gems.get(gem, 0) - amount)
+                    bank[gem] = bank.get(gem, 0) + amount
+                board.cards_owned.append(act.card_id)
+                board_grid[act.tier][act.slot] = None
+                if decks[act.tier]:
+                    board_grid[act.tier][act.slot] = decks[act.tier].pop(0)
+                vp_gained = float(card.vp)
+                events.append(f"P{pid} bought {act.card_id} (+{card.vp} VP)")
+            else:
+                events.append(f"P{pid} invalid BUY_BOARD (empty slot) — no-op")
 
         elif t == SplendorActionType.BUY_RESERVED:
-            card = CARDS_BY_ID[act.card_id]
-            payment = board.payment_for(card.cost)
-            for gem, amount in payment.items():
-                board.gems[gem] = max(0, board.gems.get(gem, 0) - amount)
-                bank[gem] = bank.get(gem, 0) + amount
-            board.cards_owned.append(act.card_id)
-            board.reserved[act.reserve_slot] = None
-            vp_gained = float(card.vp)
-            events.append(f"P{pid} bought reserved {act.card_id} (+{card.vp} VP)")
+            if act.card_id and act.card_id in CARDS_BY_ID:
+                card = CARDS_BY_ID[act.card_id]
+                payment = board.payment_for(card.cost)
+                for gem, amount in payment.items():
+                    board.gems[gem] = max(0, board.gems.get(gem, 0) - amount)
+                    bank[gem] = bank.get(gem, 0) + amount
+                board.cards_owned.append(act.card_id)
+                board.reserved[act.reserve_slot] = None
+                vp_gained = float(card.vp)
+                events.append(f"P{pid} bought reserved {act.card_id} (+{card.vp} VP)")
+            else:
+                events.append(f"P{pid} invalid BUY_RESERVED (empty slot) — no-op")
 
         # Check nobles (automatic at end of turn)
         nobles_available = list(state.nobles_available)

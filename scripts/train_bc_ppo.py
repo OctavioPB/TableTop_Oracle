@@ -34,6 +34,9 @@ def _make_env(game: str, reward_mode: str):
     if game == "seven_wonders_duel":
         from src.envs.seven_wonders_duel_env import SevenWondersDuelEnv
         return SevenWondersDuelEnv(reward_mode=reward_mode)
+    if game == "splendor":
+        from src.envs.splendor_env import SplendorEnv
+        return SplendorEnv(reward_mode=reward_mode)
     from src.envs.wingspan_env import WingspanEnv
     return WingspanEnv(reward_mode=reward_mode)
 
@@ -113,7 +116,7 @@ def _run_bc_ppo(
 def _parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description="BC pre-train + PPO fine-tune")
     p.add_argument("--game", default="wingspan",
-                   choices=["wingspan", "seven_wonders_duel"])
+                   choices=["wingspan", "seven_wonders_duel", "splendor"])
     p.add_argument("--seeds", type=int, nargs="+", default=[42, 123, 7])
     p.add_argument("--total-timesteps", type=int, default=1_000_000)
     p.add_argument("--n-envs", type=int, default=4)

@@ -137,12 +137,15 @@ class SplendorEnv(gym.Env):
 
     metadata: dict[str, Any] = {"render_modes": []}
 
+    MAX_STEPS = 300  # truncation limit — prevents infinite loops in degenerate states
+
     def __init__(self, reward_mode: str = "dense") -> None:
         super().__init__()
         self._engine = SplendorEngine()
         self._reward_mode = RewardMode(reward_mode)
         self._state: SplendorState | None = None
         self._rng_seed: int | None = None
+        self._step_count: int = 0
 
         self.action_space = spaces.Discrete(N_MAX_ACTIONS_SPLENDOR)
         self.observation_space = spaces.Dict({
@@ -168,7 +171,7 @@ class SplendorEnv(gym.Env):
         super().reset(seed=seed)
         self._rng_seed = seed
         self._state = self._engine.reset(seed=seed)
-        # Invariant: always start at player 0
+        self._step_count = 0
         assert self._state.player_id == 0
         return self._get_obs(), {}
 
@@ -179,6 +182,7 @@ class SplendorEnv(gym.Env):
         assert self._state.player_id == 0, "Turn invariant violated"
 
         prev_state = self._state
+        self._step_count += 1
 
         # --- Agent (P0) step ---
         p0_action = self._idx_to_action(action, self._state)
@@ -192,20 +196,21 @@ class SplendorEnv(gym.Env):
         if not terminated:
             assert self._state.player_id == 1
             self._state = self._run_opponent()
-            # Restore invariant
             if self._state.player_id != 0:
                 self._state = self._state.model_copy(update={"player_id": 0})
             terminated = self._engine.is_terminal(self._state)
 
+        truncated = not terminated and self._step_count >= self.MAX_STEPS
+
         info: dict[str, Any] = {}
-        if terminated:
+        if terminated or truncated:
             p0_vp = self._state.get_board(0).vp()
             p1_vp = self._state.get_board(1).vp()
             info["player_0_score"] = p0_vp
             info["player_1_score"] = p1_vp
-            info["winner"] = self._state.winner
+            info["winner"] = self._state.winner if terminated else (0 if p0_vp >= p1_vp else 1)
 
-        return self._get_obs(), reward, terminated, False, info
+        return self._get_obs(), reward, terminated, truncated, info
 
     def action_masks(self) -> np.ndarray:
         """Return boolean mask over Discrete(45)."""
@@ -282,8 +287,14 @@ class SplendorEnv(gym.Env):
         }
 
     def _run_opponent(self) -> SplendorState:
-        """Run P1 random legal action using seeded np_random for determinism."""
+        """Run P1 random legal action using seeded np_random for determinism.
+
+        If no legal actions exist (degenerate late-game state), skip the turn
+        — the MAX_STEPS truncation in step() will end the episode.
+        """
         legal = self._engine.get_legal_actions(self._state)
+        if not legal:
+            return self._state.model_copy(update={"player_id": 0})
         idx = int(self.np_random.integers(0, len(legal)))
         result = self._engine.step(self._state, legal[idx])
         return result.new_state  # type: ignore[return-value]

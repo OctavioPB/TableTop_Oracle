@@ -257,15 +257,20 @@ class SyntheticDemoGenerator:
         Returns:
             Populated DemonstrationBuffer.
         """
-        from src.agents.baselines import GreedyAgent
-
         if self._game == "seven_wonders_duel":
             from src.envs.seven_wonders_duel_env import SevenWondersDuelEnv
             env = SevenWondersDuelEnv(reward_mode=self._reward_mode)
+            expert_fn = self._greedy_wingspan_action
+        elif self._game == "splendor":
+            from src.envs.splendor_env import SplendorEnv
+            env = SplendorEnv(reward_mode=self._reward_mode)
+            expert_fn = self._greedy_splendor_action
         else:
+            from src.agents.baselines import GreedyAgent
             from src.envs.wingspan_env import WingspanEnv
             env = WingspanEnv(reward_mode=self._reward_mode)
-        greedy = GreedyAgent()
+            _greedy = GreedyAgent()
+            expert_fn = lambda state, legal: _greedy.select_action(state, legal)  # noqa: E731
         rng = random.Random(seed)
         buffer = DemonstrationBuffer()
 
@@ -276,10 +281,18 @@ class SyntheticDemoGenerator:
             done = False
 
             while not done:
-                # Collect legal WingspanActions and let GreedyAgent choose
                 legal = env._engine.get_legal_actions(env._state)
-                expert_action = greedy.select_action(env._state, legal)
-                action_idx = env._action_to_idx(expert_action)
+                expert_action = expert_fn(env._state, legal)
+
+                if self._game == "splendor":
+                    from src.games.splendor.actions import action_to_index
+                    try:
+                        action_idx: int = action_to_index(expert_action)
+                    except (ValueError, KeyError):
+                        mask = env.action_masks()
+                        action_idx = int(np.argmax(mask))
+                else:
+                    action_idx = env._action_to_idx(expert_action)  # type: ignore[attr-defined]
 
                 # _action_to_idx can return None for edge-case actions;
                 # fall back to the first legal masked index
@@ -287,8 +300,7 @@ class SyntheticDemoGenerator:
                     mask = env.action_masks()
                     action_idx = int(np.argmax(mask))
                     logger.debug(
-                        "Game %d: GreedyAgent action mapped to None, "
-                        "using fallback idx=%d",
+                        "Game %d: expert action mapped to None, fallback idx=%d",
                         game_idx, action_idx,
                     )
 
@@ -325,3 +337,41 @@ class SyntheticDemoGenerator:
         if only_wins:
             return buffer.filter_by_winner(player_id=0)
         return buffer
+
+    @staticmethod
+    def _greedy_wingspan_action(state: "Any", legal: list) -> "Any":
+        """Delegate to GreedyAgent for Wingspan / SWD (action types match)."""
+        from src.agents.baselines import GreedyAgent
+        return GreedyAgent().select_action(state, legal)
+
+    @staticmethod
+    def _greedy_splendor_action(state: "Any", legal: list) -> "Any":
+        """Simple greedy for Splendor: buy highest-VP card, else take gems.
+
+        Priority:
+          1. Buy board/reserved card with highest VP
+          2. Take 2 of same gem (if possible)
+          3. Take 3 different gems
+          4. Any legal action
+        """
+        from src.games.splendor.actions import SplendorActionType
+        from src.games.splendor.cards import CARDS_BY_ID
+
+        buy_actions = [
+            a for a in legal
+            if a.action_type in (SplendorActionType.BUY_BOARD, SplendorActionType.BUY_RESERVED)
+            and a.card_id and a.card_id in CARDS_BY_ID
+        ]
+        if buy_actions:
+            return max(buy_actions, key=lambda a: CARDS_BY_ID[a.card_id].vp)
+
+        take2 = [a for a in legal if a.action_type == SplendorActionType.TAKE_2_GEMS]
+        if take2:
+            return take2[0]
+
+        take3 = [a for a in legal if a.action_type == SplendorActionType.TAKE_3_GEMS
+                 and len(a.gems_taken) == 3]
+        if take3:
+            return take3[0]
+
+        return legal[0]
