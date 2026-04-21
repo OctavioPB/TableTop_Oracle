@@ -77,27 +77,27 @@ This paper makes five contributions:
    rate (0.973 ± 0.009) and 71% variance reduction across seeds compared to the PPO
    baseline (0.927 ± 0.025).
 
-4. **Cross-game generalisation** to two target games — 7 Wonders Duel and Splendor —
-   each requiring ~15–18% new code, with the agent layer, evaluation infrastructure, and
-   training scripts reused without modification across all three games.
+4. **Cross-game generalisation** to 7 Wonders Duel and Splendor, each requiring ~15–18%
+   new game-specific code; the agent layer, evaluation infrastructure, and training
+   scripts transferred without modification across all three games.
 
-4b. A **BC demo quality threshold finding**: BC pre-training with a greedy heuristic
-   achieving 34% validation accuracy (Splendor) delays convergence relative to a PPO
-   baseline, whereas 72% accuracy (Wingspan) produces benefit. This establishes a
-   practical calibration criterion before committing to BC in new games.
+5. A **BC demo quality threshold**: BC pre-training with a synthetic expert achieving
+   34% validation accuracy (Splendor) delays convergence relative to a PPO baseline,
+   whereas 72% accuracy (Wingspan) improves both convergence and final win rate. This
+   establishes a practical calibration criterion before committing to BC in new games.
 
-5. A **negative result on oracle reward shaping**: LLM confidence scores used as
+6. A **negative result on oracle reward shaping**: LLM confidence scores used as
    per-step reward bonuses consistently degrade RL performance (WR 0.847 vs. 0.927
    baseline), establishing that oracle guidance is valuable at the rule-grounding layer
    but harmful when naively repurposed as a reward signal.
 
 ### 1.3 Paper Organisation
 
-Section 2 reviews related work on board game AI, LLMs in game settings, and imitation
-learning. Section 3 describes the TabletopOracle architecture in detail. Section 4
-presents the Wingspan experimental results including the full 4-condition ablation.
-Section 5 reports the generalisation experiments on 7 Wonders Duel and Splendor.
-Section 6 discusses limitations and Section 7 concludes.
+Section 2 reviews related work. Section 3 describes the TabletopOracle architecture.
+Section 4 presents the Wingspan results including the full 4-condition ablation.
+Section 5 reports generalisation experiments on 7 Wonders Duel and Splendor.
+Section 6 discusses limitations, Section 7 concludes, and Section 8 documents
+engineering lessons learned during development.
 
 ---
 
@@ -571,6 +571,169 @@ These findings establish where LLM guidance adds value in the tabletop AI pipeli
 at the rule grounding and engine synthesis stage — and where it does not: as a naive
 reward signal during policy optimisation. The system, datasets, and full experimental
 code are available at [repository URL].
+
+---
+
+## 8. Engineering Lessons Learned
+
+Building TabletopOracle from first principles — without an existing codebase to adapt —
+produced a set of engineering failures whose root causes were sufficiently general and
+non-obvious to warrant explicit documentation. This section organises those lessons by
+principle rather than chronologically, with the intent that future researchers
+implementing hybrid LLM+RL game systems can treat them as a checklist of known failure
+modes.
+
+### 8.1 Feature Vector Dimensions Must Be Derived from an Explicit Formula
+
+During the implementation of `SplendorEnv`, the per-card feature vector was declared as
+`CARD_FEATURES = 11` despite encoding `occupied(1) + vp(1) + bonus_onehot(5) + costs(5) = 12`
+fields. The off-by-one was not caught by static analysis or by any test that did not
+exercise the full encoding path. The resulting `IndexError` was raised only when the
+cost field was written at index 11 into a vector of size 11. A cascading consequence
+followed: `PLAYER_FEATURES` was derived as `12 + 3 × CARD_FEATURES + 1`, so correcting
+`CARD_FEATURES` from 11 to 12 silently invalidated `PLAYER_FEATURES` from 46 to 49,
+causing a shape mismatch that surfaced in a different function at a later time.
+
+**Principle.** Every observation dimension constant should be accompanied by an inline
+formula comment: `PLAYER_FEATURES = 49  # gems(6) + bonus(5) + vp(1) + reserved(3×12) + cards(1)`.
+When one constant depends on another, the dependency must be explicit. Verification
+via `assert obs["player"].shape == (PLAYER_FEATURES,)` in `reset()` catches the entire
+class of cascading dimension errors at environment instantiation time rather than deep
+into a training run.
+
+### 8.2 The Gymnasium Seed Contract Is Not Enforced by the Framework
+
+The gymnasium `Env` contract specifies that random seeds are passed to `reset(seed=...)`,
+not to `__init__`. This convention is not enforced by `gymnasium.Env` itself — the
+constructor accepts arbitrary keyword arguments and silently discards `seed` if the
+subclass does not explicitly handle it. The same bug reappeared independently in three
+separate contexts across the project: a log parser, a training script, and an ablation
+runner. Each instance produced an environment that appeared to function correctly but
+was not actually seeded, silently breaking reproducibility.
+
+**Principle.** Enforce the contract via a unit test for every new environment:
+`env = GameEnv(); obs, _ = env.reset(seed=42); assert obs is not None`. Running
+`gymnasium.utils.env_checker.check_env()` catches a different class of violations
+(observation range, type consistency, step/reset protocol) but does not validate that
+`seed` is honoured. The seed contract requires its own test.
+
+### 8.3 Immutable State via `model_copy` Is Necessary but Not Sufficient
+
+Using Pydantic v2's `model_copy(update={...})` for all state transitions eliminates
+the class of aliasing bugs in which a mutated board corrupts the original state. However,
+`model_copy` does not perform deep copies of nested mutable collections. Any
+`from_dict()` or constructor that receives a list or dict by reference and stores it
+as-is creates a hidden alias: mutating the reconstructed board mutates the original
+state object. This class of bug was encountered in `WingspanPlayerBoard.from_dict()`,
+where `food_supply=d.get("food_supply", {})` returned a reference rather than a copy.
+
+**Principle.** Every `from_dict()` method in the domain model must copy defensively:
+`food_supply=dict(d.get("food_supply", {}))`, `hand=list(d.get("hand", []))`. Unit tests
+for `from_dict` should modify the returned object and assert the source dict is unchanged.
+
+### 8.4 The Action Space Must Be Exhaustive Under Degenerate Game States
+
+The initial Splendor action space (Discrete(45)) encoded only the 10 combinations of
+exactly 3 distinct gems. In late-game states where fewer than 3 gem types remain in the
+bank, `get_legal_actions()` returned an empty list because no valid 3-gem combination
+existed. The first attempted fix — a fallback `TAKE_3_GEMS(gems_taken=[])` no-op —
+produced an infinite loop: both players repeatedly executed the no-op without advancing
+the game state, and the episode never terminated.
+
+The correct resolution expanded the action space to Discrete(60) by including all
+C(5,1) + C(5,2) + C(5,3) = 25 distinct-gem combinations, reflecting the actual Splendor
+rule ("take *up to* 3 different gems"). The remaining degenerate edge case — truly
+empty legal action lists — is handled by `MAX_STEPS` truncation, which correctly
+terminates the episode as a draw rather than as a win.
+
+**Principle.** When designing an action space, read the complete rule description of
+every action, not only the typical case. A no-op fallback that does not advance the
+game state guarantees an infinite loop in any environment with a deterministic step
+function. The correct invariant is: either the action space covers all reachable states,
+or truncation terminates episodes that reach states not covered by the design.
+
+### 8.5 The Game Engine Must Treat Invalid Actions as No-Ops, Not Exceptions
+
+`gymnasium.utils.env_checker.check_env()` evaluates environment correctness by calling
+`env.step(action_space.sample())` with uniformly random actions, deliberately bypassing
+the action mask. In Splendor, a randomly sampled `BUY_BOARD` action may target an empty
+board slot, producing `card_id = ""`. The initial engine raised `KeyError` when
+attempting to look up `CARDS_BY_ID[""]`, causing `check_env` to fail with an unhandled
+exception rather than a meaningful assertion error.
+
+The fix added a guard at the top of every purchase branch:
+`if act.card_id and act.card_id in CARDS_BY_ID: ... else: events.append("no-op")`.
+This design choice — silent no-op rather than exception — is intentional: `check_env`
+is not a game; it is a protocol validator. The mask ensures that the trained agent never
+selects invalid actions at runtime; the engine's robustness to invalid actions is
+exclusively for the checker and for defensive programming against future callers.
+
+**Principle.** Game engines in RL pipelines should be robust to all structurally valid
+but semantically invalid actions. Invalid actions should be logged as no-ops and return
+a zero-reward transition, not raise exceptions. This allows `check_env` to pass and
+prevents training crashes caused by stale state during rapid prototyping.
+
+### 8.6 Interface Contracts Between Producers and Consumers Must Be Verified at Both Ends
+
+`WinRateCallback` writes evaluation records with keys `"timestep"` and
+`"win_rate_vs_random"`. A downstream analysis function `steps_to_target_winrate` was
+written to consume keys `"step"` and `"win_rate"` — names that do not exist in the
+produced records. The consumer tests were written with manually constructed dictionaries
+using the incorrect key names, so the tests passed while the function silently returned
+`None` for all inputs in any real experiment.
+
+This pattern recurred in a different form with `WinRateCallback`'s constructor: a
+training script instantiated it as `WinRateCallback(eval_freq=50_000, n_eval_games=50)`,
+omitting the required first positional argument `eval_env` and using the wrong keyword
+`n_eval_games` instead of `n_eval_episodes`. The script would have raised `TypeError`
+only when training began — not at import time.
+
+**Principle.** For any function that consumes the output of another, the test data
+must be generated by the producer, not written by hand. A producer–consumer contract
+test of the form `result = producer(...); assert consumer(result) == expected` catches
+key-name divergence that unit tests on each side independently cannot detect.
+
+### 8.7 RAG Accuracy Is Bounded by Knowledge Base Completeness, Not Retrieval Configuration
+
+Early Rule Oracle evaluation for Wingspan plateaued at 52% accuracy despite extensive
+tuning of chunk size (from 400 to 80 tokens), overlap, and retrieval k. The ceiling
+was not caused by retrieval quality — it was caused by missing content. Questions in
+the `bird_power` and `exception` categories addressed implicit meta-rules of board game
+design (priority ordering for simultaneous effects, universal "pass" resolution) that
+appear in no official Stonemaier document. Adding the official FAQ, a quickstart
+summary, and three targeted clarification documents raised accuracy from 52% to 90%.
+
+A secondary failure mode was confusion between `ingest()` and `ingest_extra()`.
+`ingest()` deletes and recreates the collection before inserting new documents; calling
+it to add a FAQ document silently destroyed all previously ingested chunks from the
+rulebook. `ingest_extra()` appends to an existing collection without deletion.
+
+**Principle.** When a RAG system fails on a category of questions, diagnose whether
+the relevant content exists anywhere in the knowledge base before adjusting retrieval
+parameters. `collection.count()` after ingestion is a necessary sanity check: 18 chunks
+for a 12-page rulebook is a signal of misconfiguration, not a tuning starting point.
+Content completeness dominates retrieval configuration for domain-specific RAG.
+
+### 8.8 The Opponent's Random Sampling Must Use the Environment's Seeded RNG
+
+The initial implementation of `_run_opponent()` in `SplendorEnv` used Python's global
+`random.choice()` to select the opponent's action. `gymnasium.utils.env_checker` verifies
+that two calls to `reset(seed=42)` followed by identical action sequences produce
+identical observations. Because `random.choice()` draws from the global random state —
+which is not reset by `env.reset(seed=...)` — the determinism check failed
+intermittently depending on prior calls in the same process.
+
+The fix replaced `random.choice(legal)` with
+`legal[int(self.np_random.integers(0, len(legal)))]`, where `self.np_random` is the
+gymnasium-managed RNG that is re-seeded by `reset(seed=...)`. A secondary failure
+followed immediately: `np_random.integers(0, 0)` raises `ValueError` when the legal
+action list is empty (a valid degenerate state). The correct guard is
+`if not legal: return state` before any attempt to sample.
+
+**Principle.** All stochastic decisions inside a gymnasium environment — including
+opponent moves, card shuffling, and deck initialisation — must use `self.np_random`
+rather than Python's global `random` module. Global RNG state is not controlled by the
+gymnasium seed protocol and breaks reproducibility silently.
 
 ---
 
