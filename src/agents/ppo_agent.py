@@ -60,12 +60,18 @@ def build_maskable_ppo(
     from sb3_contrib import MaskablePPO
 
     from src.agents.encoders import SWDFeaturesExtractor, WingspanFeaturesExtractor
+    from src.agents.splendor_extractor import SplendorFeaturesExtractor
 
     hp = {**_DEFAULT_HYPERPARAMS, **hyperparams}
     features_dim: int = hp.pop("features_dim")
     net_arch: list[int] = hp.pop("net_arch")
 
-    extractor_cls = SWDFeaturesExtractor if game == "seven_wonders_duel" else WingspanFeaturesExtractor
+    if game == "seven_wonders_duel":
+        extractor_cls = SWDFeaturesExtractor
+    elif game == "splendor":
+        extractor_cls = SplendorFeaturesExtractor
+    else:
+        extractor_cls = WingspanFeaturesExtractor
 
     policy_kwargs = {
         "features_extractor_class": extractor_cls,
@@ -234,6 +240,9 @@ def evaluate_ppo_win_rate(
     if game == "seven_wonders_duel":
         from src.envs.seven_wonders_duel_env import SevenWondersDuelEnv
         eval_env = SevenWondersDuelEnv(reward_mode=reward_mode)
+    elif game == "splendor":
+        from src.envs.splendor_env import SplendorEnv
+        eval_env = SplendorEnv(reward_mode=reward_mode)
     else:
         from src.envs.wingspan_env import WingspanEnv  # type: ignore[attr-defined]
         eval_env = WingspanEnv(reward_mode=reward_mode)

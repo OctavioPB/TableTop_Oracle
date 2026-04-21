@@ -37,7 +37,7 @@ logger = logging.getLogger("train_ppo")
 
 def _parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Train MaskablePPO on Wingspan.")
-    p.add_argument("--game", default="wingspan", choices=["wingspan", "seven_wonders_duel"])
+    p.add_argument("--game", default="wingspan", choices=["wingspan", "seven_wonders_duel", "splendor"])
     p.add_argument("--total-timesteps", type=int, default=1_000_000)
     p.add_argument("--n-envs", type=int, default=4,
                    help="Number of parallel environments (DummyVecEnv).")
@@ -150,6 +150,13 @@ def main() -> None:
             return SevenWondersDuelEnv(reward_mode=reward_mode)
 
         eval_env = SevenWondersDuelEnv(reward_mode=reward_mode)
+    elif args.game == "splendor":
+        from src.envs.splendor_env import SplendorEnv
+
+        def _make_env():  # type: ignore[return]
+            return SplendorEnv(reward_mode=reward_mode)
+
+        eval_env = SplendorEnv(reward_mode=reward_mode)
     else:
         from src.envs.wingspan_env import WingspanEnv
 
