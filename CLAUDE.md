@@ -443,7 +443,7 @@ Post-S7 — RAG ablation vars         [x] Completado (2026-04-20)
 Post-S7 — Ablación RAG + análisis   [x] Completado (2026-04-21)
 Post-S7 — Splendor engine + env     [x] Completado (2026-04-21)
 Post-S7 — Splendor baseline 3 seeds [x] Completado (2026-04-21)
-Post-S7 — Splendor BC+PPO           [ ] Pendiente
+Post-S7 — Splendor BC+PPO           [x] Completado (2026-04-21)
 ```
 
 Actualiza esta sección al final de cada sesión de trabajo.
@@ -820,7 +820,7 @@ Post-S7 — RAG ablation vars         [x] Completado (2026-04-20)
 Post-S7 — Ablación RAG ejecutada    [x] Completado (2026-04-21)
 Post-S7 — Splendor engine + env     [x] Completado (2026-04-21)
 Post-S7 — Splendor baseline 3 seeds [x] Completado (2026-04-21)
-Post-S7 — Splendor BC+PPO           [ ] Pendiente
+Post-S7 — Splendor BC+PPO           [x] Completado (2026-04-21)
 ```
 
 ---

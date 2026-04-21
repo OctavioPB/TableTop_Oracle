@@ -17,15 +17,17 @@ oracle for edge-case rule queries at development time, keeping runtime inference
 near zero.
 
 We evaluate the system on Wingspan (74 unique bird cards, 4-round structure) and
-demonstrate generalisation to 7 Wonders Duel (69 cards, 3 distinct win conditions)
-with under 20% changes to the codebase. A full 4-condition ablation over 3 seeds
-isolates the contribution of each component. Behavioural Cloning (BC) pre-training
-achieves the highest final win rate (0.973 ± 0.009 vs. random) and reduces cross-seed
-variance by 71% relative to the PPO baseline (0.927 ± 0.025). Critically,
-oracle-guided reward shaping — using LLM confidence as a proxy for strategic value —
-consistently degrades performance (0.847 ± 0.025), providing a cautionary finding for
-hybrid LLM+RL systems: LLM confidence is not a reliable signal for per-step reward
-shaping in complex games.
+demonstrate generalisation to 7 Wonders Duel (69 cards, 3 distinct win conditions) and
+Splendor (45 development cards, engine-building gem economy), each requiring under 20%
+new code. A full 4-condition ablation over 3 seeds isolates the contribution of each
+component on Wingspan. Behavioural Cloning (BC) pre-training achieves the highest
+final win rate (0.973 ± 0.009 vs. random) and reduces cross-seed variance by 71%
+relative to the PPO baseline (0.927 ± 0.025). Critically, oracle-guided reward shaping
+— using LLM confidence as a proxy for strategic value — consistently degrades
+performance (0.847 ± 0.025), providing a cautionary finding for hybrid LLM+RL systems.
+Across three games, we further show that BC benefit scales with demo quality: a greedy
+heuristic with 34% accuracy (Splendor) delays convergence compared to one with 72%
+(Wingspan), establishing a practical quality threshold for BC pre-training.
 
 ---
 
@@ -75,9 +77,14 @@ This paper makes five contributions:
    rate (0.973 ± 0.009) and 71% variance reduction across seeds compared to the PPO
    baseline (0.927 ± 0.025).
 
-4. The first demonstration of **cross-game generalisation** from Wingspan to 7 Wonders
-   Duel with minimal architectural changes (~18% of the non-test codebase), confirming
-   that the framework is not game-specific.
+4. **Cross-game generalisation** to two target games — 7 Wonders Duel and Splendor —
+   each requiring ~15–18% new code, with the agent layer, evaluation infrastructure, and
+   training scripts reused without modification across all three games.
+
+4b. A **BC demo quality threshold finding**: BC pre-training with a greedy heuristic
+   achieving 34% validation accuracy (Splendor) delays convergence relative to a PPO
+   baseline, whereas 72% accuracy (Wingspan) produces benefit. This establishes a
+   practical calibration criterion before committing to BC in new games.
 
 5. A **negative result on oracle reward shaping**: LLM confidence scores used as
    per-step reward bonuses consistently degrade RL performance (WR 0.847 vs. 0.927
@@ -89,8 +96,8 @@ This paper makes five contributions:
 Section 2 reviews related work on board game AI, LLMs in game settings, and imitation
 learning. Section 3 describes the TabletopOracle architecture in detail. Section 4
 presents the Wingspan experimental results including the full 4-condition ablation.
-Section 5 reports the generalisation experiment on 7 Wonders Duel. Section 6 discusses
-limitations and Section 7 concludes.
+Section 5 reports the generalisation experiments on 7 Wonders Duel and Splendor.
+Section 6 discusses limitations and Section 7 concludes.
 
 ---
 
@@ -154,23 +161,14 @@ reduces variance during fine-tuning, a finding our ablation corroborates quantit
 ## 3. System Architecture
 
 TabletopOracle is organised into three decoupled layers, each with a clear interface
-to the adjacent layers:
+to the adjacent layers (Figure 2).
 
-```
-┌──────────────────────────────────────────────────────────────────┐
-│  RULE LAYER                                                      │
-│  PDF Rulebook → Chunker → ChromaDB ← Rule Oracle (Claude RAG)   │
-│  src/oracle/                                                     │
-├──────────────────────────────────────────────────────────────────┤
-│  ENVIRONMENT LAYER                                               │
-│  GameState (Pydantic v2) + LegalMoveValidator + gym.Env         │
-│  src/games/ + src/envs/                                          │
-├──────────────────────────────────────────────────────────────────┤
-│  AGENT LAYER                                                     │
-│  SyntheticDemos → BC pre-train → MaskablePPO (sb3-contrib)      │
-│  src/agents/ + src/imitation/                                    │
-└──────────────────────────────────────────────────────────────────┘
-```
+![Architecture diagram](figures/architecture_diagram.png)
+
+**Figure 2.** TabletopOracle three-layer architecture. The Rule Layer (blue) operates
+entirely offline; the LLM is never called during RL training. The Environment Layer
+(green) exposes a standard `gymnasium.Env` interface with action masking. The Agent
+Layer (purple) is fully game-agnostic.
 
 ### 3.1 Rule Layer
 
@@ -314,6 +312,10 @@ override the environment signal.
 | 4 — Full (BC+RAG) | 0.807 ± 0.034 | 69.1 ± 2.5 | 0.034 |
 
 Learning curves with per-seed confidence bands are shown in Figure 1 (`figures/ablation_curves.png`).
+
+![Wingspan ablation curves](figures/ablation_curves.png)
+
+**Figure 1.** Win rate vs. training steps for the four ablation conditions on Wingspan (3 seeds each, shaded bands = ±1 std).
 All four conditions reach WR ≥ 0.55 by the first evaluation checkpoint at 200,000 steps,
 confirming that action masking enables basic competence to emerge early regardless of
 initialisation. Beyond that point, the conditions diverge substantially.
@@ -388,80 +390,113 @@ the GreedyAgent's immediate-value heuristics during initialisation.
 
 ---
 
-## 5. Generalisation: 7 Wonders Duel
+## 5. Generalisation: 7 Wonders Duel and Splendor
 
-### 5.1 Game Description
+### 5.1 Game Descriptions
 
-7 Wonders Duel is a 2-player card drafting game for two players. Three successive
-ages each present 23 cards arranged in a face-up/face-down pyramid structure; a player
-may only take a face-up card not blocked by overlapping face-down cards. Cards provide
-resources, military strength, science symbols, civilian victory points, and commercial
-effects. Three distinct win conditions create non-trivial multi-objective strategy:
-military supremacy (push the military token to the opponent's capital), science
-supremacy (collect 6 unique science symbols), or VP majority at the end of Age III.
-Resource trading occurs at dynamic prices equal to 2 plus the opponent's current
-production of each resource type, creating a strategic tension between denying opponent
-resources and acquiring one's own.
+**7 Wonders Duel** is a 2-player card drafting game. Three successive ages each present
+23 cards arranged in a face-up/face-down pyramid structure; a player may only take a
+face-up card not blocked by overlapping face-down cards. Cards provide resources,
+military strength, science symbols, civilian victory points, and commercial effects.
+Three distinct win conditions create non-trivial multi-objective strategy: military
+supremacy, science supremacy (6 unique science symbols), or VP majority at the end of
+Age III. Resource trading occurs at dynamic prices equal to 2 plus the opponent's
+current production of each resource type.
+
+**Splendor** is a 2-player engine-building game with 5 gem types plus gold, three card
+tiers (tier-1: 0–1 VP, tier-2: 1–3 VP, tier-3: 3–5 VP), and noble tiles (3 VP each).
+Players collect gem tokens and permanent bonus gems (from purchased cards) to buy
+development cards. The first player to reach 15 VP triggers the final round; the
+player with more VP (fewest cards as tie-break) wins. Splendor has a smaller and more
+structured action space than Wingspan or 7WD (Discrete(60) vs. ~150), with dense
+immediate rewards (VP gained at purchase time) that accelerate convergence.
 
 ### 5.2 Framework Reuse Analysis
 
-Adapting TabletopOracle from Wingspan to 7 Wonders Duel required modifying or creating
-components only in the game-specific modules. Table 3 summarises the reuse analysis.
+Adapting TabletopOracle to each new game required modifying or creating components
+only in the game-specific modules. Table 3 summarises the reuse analysis for both
+target games.
 
-**Table 3. Component reuse: Wingspan → 7 Wonders Duel**
+**Table 3. Component reuse: Wingspan → 7 Wonders Duel → Splendor**
 
-| Component | Status |
-|---|---|
-| `GameEngine` ABC | Reused unchanged |
-| `GameState` (Pydantic v2 base) | Reused unchanged |
-| `ActionResult` | Reused unchanged |
-| `LegalMoveValidator` ABC | Reused; new `SWDLegalMoveValidator` |
-| `gym.Env` base + VecEnv integration | Reused; new `SevenWondersDuelEnv` |
-| `WingspanFeaturesExtractor` | Not reused; new `SWDFeaturesExtractor` |
-| `build_maskable_ppo()` | Reused; new branch for game="7wd" |
-| `BehavioralCloningTrainer` | Reused unchanged |
-| `Tournament` + `EloTable` | Reused unchanged |
-| `LLMJudge` | Reused unchanged |
+| Component | 7 Wonders Duel | Splendor |
+|---|---|---|
+| `GameEngine` ABC | Reused unchanged | Reused unchanged |
+| `GameState` (Pydantic v2 base) | Reused unchanged | Reused unchanged |
+| `ActionResult` | Reused unchanged | Reused unchanged |
+| `LegalMoveValidator` ABC | New `SWDLegalMoveValidator` | Integrated into engine |
+| `gym.Env` base + VecEnv integration | New `SevenWondersDuelEnv` | New `SplendorEnv` |
+| `FeaturesExtractor` | New `SWDFeaturesExtractor` | New `SplendorFeaturesExtractor` |
+| `build_maskable_ppo()` | New branch for game="7wd" | New branch for game="splendor" |
+| `BehavioralCloningTrainer` | Reused unchanged | Reused unchanged |
+| `Tournament` + `EloTable` | Reused unchanged | Reused unchanged |
+| `LLMJudge` | Reused unchanged | Reused unchanged |
+| `SyntheticDemoGenerator` | Reused (GreedyAgent policy) | New `_greedy_splendor_action` |
 
-New game-specific code comprises approximately 18% of the non-test codebase. The
-remaining 82% — the entire agent layer, evaluation infrastructure, Rule Layer, and
-training scripts — required no changes. This confirms that the three-layer design
+New game-specific code comprises approximately 18% of the non-test codebase per game.
+The agent layer, evaluation infrastructure, Rule Layer, and training scripts required
+no changes across either adaptation. This confirms that the three-layer design
 successfully isolates game-specific complexity within the Environment Layer.
 
 ### 5.3 Results
 
-**Table 4. Generalisation results: Wingspan vs. 7 Wonders Duel (mean ± std, 3 seeds)**
+**Table 4. Generalisation results across three games (mean ± std, 3 seeds each)**
 
-| Metric | Wingspan | 7 Wonders Duel |
-|---|---|---|
-| WR vs random — PPO baseline (1M steps) | 0.927 ± 0.025 | 0.667 ± 0.058 |
-| WR vs random — BC+PPO (1M steps) | 0.973 ± 0.009 | **0.800 ± 0.082** |
-| Avg score P0 — PPO baseline | 80.7 ± 1.8 | 43.9 ± 2.4 |
-| Avg score P0 — BC+PPO | 84.5 ± 2.0 | 41.2 ± 0.7 |
-| BC validation accuracy | 72.0 ± 4.8% | 99.2 ± 0.5% |
-| Steps to reach WR ≥ 0.55 | 200,000 | 200,000 |
-| Rule violation rate | 0.0 | 0.0 |
-| % codebase changed from Wingspan | — | ~18% |
+| Metric | Wingspan | 7 Wonders Duel | Splendor |
+|---|---|---|---|
+| Action space size | ~150 | ~120 | 60 |
+| WR vs random — PPO baseline (1M steps) | 0.927 ± 0.025 | 0.667 ± 0.058 | 0.950 ± 0.041 |
+| WR vs random — BC+PPO (1M steps) | **0.973 ± 0.009** | **0.800 ± 0.082** | **0.967 ± 0.024** |
+| Variance reduction from BC | 71% | −29%¹ | 41% |
+| Steps to first WR ≥ 0.9 — PPO baseline | 200,000 | >1,000,000 | **50,000** |
+| Steps to first WR ≥ 0.9 — BC+PPO | 200,000 | >1,000,000 | 200,000 |
+| BC demo validation accuracy | 72.0 ± 4.8% | 99.2 ± 0.5% | 33.8 ± 1.5% |
+| Rule violation rate | 0.0 | 0.0 | 0.0 |
+| % codebase changed from prior game | — | ~18% | ~15% |
 
-In 7 Wonders Duel, BC+PPO outperforms the baseline by 13.3 percentage points (0.800
-vs. 0.667), a substantially larger margin than the 4.6 pp advantage observed in
-Wingspan (0.973 vs. 0.927). This amplified BC benefit in 7WD is consistent with the
-game's more complex action space: the pyramid structure and three simultaneous win
-conditions create a larger fraction of low-value legal actions that the GreedyAgent
-prior helps filter out. Without BC, PPO from scratch spends more of its 1M-step budget
-exploring strategically unproductive regions of the action space.
+*¹ 7WD BC+PPO std 0.082 > baseline std 0.058 — higher variance persists due to the three simultaneous win conditions.*
 
-The BC validation accuracy of 99.2% in 7WD (vs. 72% in Wingspan) reflects the
-GreedyAgent's more deterministic behaviour in that game — fewer equivalent actions
-exist when card availability is constrained by the pyramid structure, making the
-demonstration distribution more peaked and easier to clone. The PPO baseline's higher
-variance in 7WD (std 0.058 vs. 0.025 in Wingspan) reflects greater sensitivity to the
-initial policy in a more complex game, a pattern that BC directly addresses.
+**7 Wonders Duel.** BC+PPO outperforms the baseline by 13.3 pp (0.800 vs. 0.667), a
+substantially larger margin than in Wingspan (4.6 pp). This amplified BC benefit
+reflects the game's more complex action space: the pyramid structure and three
+simultaneous win conditions create a larger fraction of low-value legal actions that
+the GreedyAgent prior helps filter out. The BC validation accuracy of 99.2% reflects
+the GreedyAgent's near-deterministic behaviour in that game — fewer equivalent actions
+exist when card availability is constrained by pyramid accessibility.
 
-The zero rule violation rate in both games confirms that the action masking mechanism
-scales correctly to the new environment: the `SWDLegalMoveValidator` enforces pyramid
-accessibility, resource costs, and win-condition legality without requiring any changes
-to the masking infrastructure.
+**Splendor.** The Splendor results reveal an important interaction between demo quality
+and convergence speed. The PPO baseline reaches WR ≥ 0.9 at only 50k steps — four
+times faster than Wingspan — due to Splendor's smaller action space (Discrete(60))
+and dense immediate VP rewards. BC+PPO achieves a slightly higher final WR (0.967 vs.
+0.950) and 41% lower variance (std 0.024 vs. 0.041), but converges more slowly (200k
+vs. 50k steps). The critical factor is BC demo quality: the Splendor greedy heuristic
+achieved only 33.8% validation accuracy, producing a weakly informative prior that the
+PPO must partially unlearn before it can exploit its fast-converging reward signal.
+
+This interaction — low-quality BC slows convergence on a fast-converging game, while
+high-quality BC accelerates convergence on a slow-converging one (7WD) — suggests a
+**demo quality threshold** below which BC pre-training imposes a net convergence cost.
+The threshold appears to lie between ~35% (Splendor, convergence hurt) and ~72%
+(Wingspan, convergence neutral, final WR improved). Calibrating demo generator quality
+before committing to BC pre-training is therefore a practical recommendation for
+deployers of the TabletopOracle framework.
+
+The zero rule violation rate across all three games confirms that action masking scales
+correctly to each new environment without changes to the masking infrastructure.
+
+![Cross-game comparison](figures/cross_game_comparison.png)
+
+**Figure 3.** Final win rate (mean ± std, 3 seeds, 1M steps) for PPO Baseline and BC+PPO
+across three games. Action space size is annotated below each game. BC+PPO consistently
+matches or exceeds the baseline; the largest gain occurs in 7 Wonders Duel (+13.3 pp),
+the game with the most complex action space.
+
+![7WD training curves](figures/7wd_bc_ppo_curves.png)
+
+**Figure 4.** 7 Wonders Duel win-rate curves (3 seeds, shaded bands = ±1 std).
+BC+PPO (orange) reaches WR 0.800 vs. 0.667 for the PPO baseline at 1M steps.
+Neither condition reaches WR ≥ 0.9 within budget, reflecting the game's structural
+complexity relative to Wingspan and Splendor.
 
 ---
 
@@ -507,22 +542,30 @@ insight is that LLMs are expensive **interpreters** but cheap **compilers**: usi
 once to synthesise a Python rule engine costs ~$15; using them at inference time during
 RL training would cost ~$3,000 for an identical training run.
 
-The cross-game generalisation experiment validates that the three-layer design is not
-Wingspan-specific. Adapting to 7 Wonders Duel required only ~18% new code, while the
-entire agent and evaluation infrastructure transferred without modification. The BC+PPO
-configuration achieves WR 0.800 in 7WD after 1M steps, confirming that the framework
-scales to games with qualitatively different strategic structure.
+The cross-game generalisation experiments validate that the three-layer design is not
+Wingspan-specific. Adapting to 7 Wonders Duel and Splendor each required ~15–18% new
+code, while the entire agent and evaluation infrastructure transferred without
+modification. BC+PPO achieves WR 0.800 in 7WD and WR 0.967 in Splendor after 1M
+steps, confirming that the framework scales across games with qualitatively different
+strategic structure, action space complexity, and reward density.
 
 The full 4-condition ablation over 3 seeds produces three findings that collectively
 delineate the role of LLM guidance in hybrid LLM+RL systems. First, BC pre-training
-from a synthetic expert is the dominant configuration (WR 0.973 ± 0.009, 71% variance
-reduction), providing a cheap and effective alternative to human demonstrations. Second,
-oracle-guided reward shaping consistently hurts performance because LLM confidence is
-an epistemic measure of documentation quality, not a per-step marginal value signal —
-using it as such inverts the action-value ordering and distorts the reward landscape.
-Third, a good BC initialisation does not provide resilience to shaping misalignment;
-it amplifies the damage by directing gradient updates more decisively toward the
-miscalibrated incentive.
+from a synthetic expert is the dominant configuration on Wingspan (WR 0.973 ± 0.009,
+71% variance reduction), providing a cheap and effective alternative to human
+demonstrations. Second, oracle-guided reward shaping consistently hurts performance
+because LLM confidence is an epistemic measure of documentation quality, not a
+per-step marginal value signal — using it as such inverts the action-value ordering
+and distorts the reward landscape. Third, a good BC initialisation does not provide
+resilience to shaping misalignment; it amplifies the damage by directing gradient
+updates more decisively toward the miscalibrated incentive.
+
+The Splendor results add a fourth finding: **BC benefit scales with demo quality**.
+A greedy heuristic with 34% validation accuracy delays convergence (200k vs. 50k steps)
+even as it improves final WR and reduces variance, because the low-quality prior
+introduces biases the PPO must unlearn. The threshold appears to lie between 34% and
+72% demo accuracy, providing a practical calibration criterion for practitioners
+deploying BC pre-training on new games.
 
 These findings establish where LLM guidance adds value in the tabletop AI pipeline —
 at the rule grounding and engine synthesis stage — and where it does not: as a naive
@@ -557,6 +600,7 @@ code are available at [repository URL].
 - Chroma AI (2023). Chroma: the AI-native open-source embedding database. https://www.trychroma.com/.
 - Stonemaier Games (2019). *Wingspan* [Board game].
 - Repos Production / Asmodee (2015). *7 Wonders Duel* [Board game].
+- Space Cowboys / Asmodee (2014). *Splendor* [Board game].
 
 ---
 

@@ -285,12 +285,16 @@ class SyntheticDemoGenerator:
                 expert_action = expert_fn(env._state, legal)
 
                 if self._game == "splendor":
-                    from src.games.splendor.actions import action_to_index
-                    try:
-                        action_idx: int = action_to_index(expert_action)
-                    except (ValueError, KeyError):
+                    if expert_action is None:
                         mask = env.action_masks()
-                        action_idx = int(np.argmax(mask))
+                        action_idx: int = int(np.argmax(mask))
+                    else:
+                        from src.games.splendor.actions import action_to_index
+                        try:
+                            action_idx = action_to_index(expert_action)
+                        except (ValueError, KeyError):
+                            mask = env.action_masks()
+                            action_idx = int(np.argmax(mask))
                 else:
                     action_idx = env._action_to_idx(expert_action)  # type: ignore[attr-defined]
 
@@ -353,7 +357,11 @@ class SyntheticDemoGenerator:
           2. Take 2 of same gem (if possible)
           3. Take 3 different gems
           4. Any legal action
+          Returns None if legal is empty (degenerate state — caller uses mask fallback).
         """
+        if not legal:
+            return None
+
         from src.games.splendor.actions import SplendorActionType
         from src.games.splendor.cards import CARDS_BY_ID
 
