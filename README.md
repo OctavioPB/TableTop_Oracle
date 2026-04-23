@@ -323,8 +323,8 @@ TabletopOracle/
 ├── paper/
 │   ├── paper_draft.md              # Full workshop paper draft
 │   └── figures/                    # All 6 paper figures (PNG)
-├── pyproject.toml
-└── CLAUDE.md                       # Developer session instructions
+└── pyproject.toml
+
 ```
 
 ---
